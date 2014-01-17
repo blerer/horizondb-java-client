@@ -17,11 +17,11 @@ package io.horizondb.client;
 
 import io.horizondb.model.DatabaseDefinition;
 import io.horizondb.model.FieldType;
-import io.horizondb.model.Record;
 import io.horizondb.model.RecordIterator;
 import io.horizondb.model.RecordTypeDefinition;
 import io.horizondb.model.TimeSeriesDefinition;
-import io.horizondb.model.records.TimeSeriesRecord;
+import io.horizondb.model.core.Record;
+import io.horizondb.model.core.records.TimeSeriesRecord;
 
 import java.io.IOException;
 import java.util.Iterator;

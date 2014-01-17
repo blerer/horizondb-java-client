@@ -20,8 +20,8 @@ import io.horizondb.model.DataChunk;
 import io.horizondb.model.Query;
 import io.horizondb.model.RecordIterator;
 import io.horizondb.model.TimeSeriesDefinition;
-import io.horizondb.model.records.BinaryTimeSeriesRecord;
-import io.horizondb.protocol.Msg;
+import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
+import io.horizondb.model.protocol.Msg;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;

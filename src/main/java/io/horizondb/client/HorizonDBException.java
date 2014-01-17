@@ -15,7 +15,7 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.Error;
+import io.horizondb.model.protocol.ErrorPayload;
 
 /**
  * @author Benjamin
@@ -31,11 +31,11 @@ public class HorizonDBException extends RuntimeException {
 	/**
 	 * @param message
 	 */
-	public HorizonDBException(Error error) {
+	public HorizonDBException(ErrorPayload errorPayload) {
 		super(new StringBuilder().append("[ERROR: ")
-		                         .append(error.getCode())
+		                         .append(errorPayload.getCode())
 		                         .append("] ")
-		                         .append(error.getMessage())
+		                         .append(errorPayload.getMessage())
 		                         .toString());
 	}
     

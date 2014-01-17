@@ -22,8 +22,8 @@ import io.horizondb.model.RecordBatch;
 import io.horizondb.model.TimeRange;
 import io.horizondb.model.TimeSeriesDefinition;
 import io.horizondb.model.TimeSeriesRecordIterator;
-import io.horizondb.protocol.Msg;
-import io.horizondb.protocol.OpCode;
+import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.OpCode;
 
 import java.util.Map.Entry;
 

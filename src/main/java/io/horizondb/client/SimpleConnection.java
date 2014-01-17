@@ -15,8 +15,8 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.Error;
-import io.horizondb.protocol.Msg;
+import io.horizondb.model.protocol.ErrorPayload;
+import io.horizondb.model.protocol.Msg;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
@@ -100,7 +100,7 @@ import java.util.concurrent.TimeUnit;
 			
 			if (!response.getHeader().isSuccess()) {
 				
-				throw new HorizonDBException((Error) response.getPayload());
+				throw new HorizonDBException((ErrorPayload) response.getPayload());
 			}
 			
 			return response;

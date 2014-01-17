@@ -15,10 +15,11 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.io.serialization.SerializableString;
 import io.horizondb.model.DatabaseDefinition;
-import io.horizondb.protocol.Msg;
-import io.horizondb.protocol.OpCode;
+import io.horizondb.model.protocol.GetDatabaseRequestPayload;
+import io.horizondb.model.protocol.GetDatabaseResponsePayload;
+import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.Msgs;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
@@ -66,9 +67,8 @@ public class HorizonClient implements Closeable {
 		notEmpty(name, "the name parameter must not be empty.");
 		
 		DatabaseDefinition definition = new DatabaseDefinition(name);
-		Msg<DatabaseDefinition> request = Msg.newRequestMsg(OpCode.CREATE_DATABASE, definition);
-		
-		this.manager.send(request);
+
+		this.manager.send(Msgs.newCreateDatabaseRequest(definition));
 		
 		return new Database(this.manager, definition);
 	}
@@ -83,11 +83,11 @@ public class HorizonClient implements Closeable {
 		
 		notEmpty(name, "the name parameter must not be empty.");
 		
-		Msg<SerializableString> request = Msg.newRequestMsg(OpCode.GET_DATABASE, new SerializableString(name));
+		Msg<GetDatabaseRequestPayload> request = Msgs.newGetDatabaseRequest(name);
 
-		Msg<DatabaseDefinition> response = this.manager.send(request);
+		GetDatabaseResponsePayload payload = Msgs.getPayload(this.manager.send(request));
 		
-		return new Database(this.manager, response.getPayload());
+		return new Database(this.manager, payload.getDefinition());
 	}
 	
 	/**

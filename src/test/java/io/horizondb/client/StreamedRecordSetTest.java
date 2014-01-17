@@ -25,13 +25,13 @@ import io.horizondb.model.DatabaseDefinition;
 import io.horizondb.model.FieldType;
 import io.horizondb.model.PartitionId;
 import io.horizondb.model.Query;
-import io.horizondb.model.Record;
 import io.horizondb.model.RecordTypeDefinition;
 import io.horizondb.model.TimeRange;
 import io.horizondb.model.TimeSeriesDefinition;
-import io.horizondb.model.records.TimeSeriesRecord;
-import io.horizondb.protocol.Msg;
-import io.horizondb.protocol.OpCode;
+import io.horizondb.model.core.Record;
+import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.OpCode;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

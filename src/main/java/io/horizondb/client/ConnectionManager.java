@@ -16,8 +16,8 @@
 package io.horizondb.client;
 
 import io.horizondb.io.serialization.Serializable;
-import io.horizondb.protocol.Msg;
-import io.horizondb.protocol.MsgHeader;
+import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.MsgHeader;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

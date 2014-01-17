@@ -20,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import io.horizondb.io.Buffer;
 import io.horizondb.io.buffers.Buffers;
-import io.horizondb.protocol.Msg;
+import io.horizondb.model.protocol.Msg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

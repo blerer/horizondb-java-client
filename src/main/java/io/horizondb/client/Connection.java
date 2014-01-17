@@ -15,7 +15,7 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.protocol.Msg;
+import io.horizondb.model.protocol.Msg;
 
 /**
  * @author Benjamin
