@@ -18,8 +18,8 @@ package io.horizondb.client;
 import io.horizondb.db.Configuration;
 import io.horizondb.db.HorizonServer;
 import io.horizondb.io.files.FileUtils;
-import io.horizondb.model.RecordTypeDefinition;
-import io.horizondb.model.TimeSeriesDefinition;
+import io.horizondb.model.schema.RecordTypeDefinition;
+import io.horizondb.model.schema.TimeSeriesDefinition;
 import io.horizondb.test.AssertFiles;
 import io.horizondb.db.utils.TimeUtils;
 
@@ -280,19 +280,19 @@ public class HorizonClientTest {
 				
 				timeSeries.write(timeSeriesRecordSet);
 				
-				RecordSet recordSet = timeSeries.read(timestamp, timestamp + 20000);
+				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(125, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(10, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(10, defaultRecordSet.getLong(2));
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
-				assertEquals(120, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(5, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(5, defaultRecordSet.getLong(2));
 			}
 
 		} finally {
@@ -351,19 +351,19 @@ public class HorizonClientTest {
 				
 				timeSeries.write(timeSeriesRecordSet);
 				
-				RecordSet recordSet = timeSeries.read(timestamp, timestamp + 20000);
+				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(125, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(10, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(10, defaultRecordSet.getLong(2));
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
-				assertEquals(120, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(5, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(5, defaultRecordSet.getLong(2));
 			}
 
 		} finally {
@@ -382,19 +382,19 @@ public class HorizonClientTest {
 				client.setQueryTimeoutInSeconds(120);
 				TimeSeries timeSeries = client.getDatabase("test").getTimeSeries("DAX");
 				
-				RecordSet recordSet = timeSeries.read(timestamp, timestamp + 20000);
+				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(125, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(10, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(10, defaultRecordSet.getLong(2));
 				
-				assertTrue(recordSet.next());
-				assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
-				assertEquals(120, recordSet.getDecimalMantissa(1));
-				assertEquals(-1, recordSet.getDecimalExponent(1));
-				assertEquals(5, recordSet.getLong(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+				assertEquals(5, defaultRecordSet.getLong(2));
 			}
 
 		} finally {
@@ -498,61 +498,61 @@ public class HorizonClientTest {
 				                                                      .resolve("test")
 				                                                      .resolve("CAC40-1384383600000.ts"));
 				
-				RecordSet recordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
+				RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(1));
-				assertEquals(5, recordSet.getByte(2));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(5, defaultRecordSet.getByte(2));
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(1));
-				assertEquals(6, recordSet.getByte(2));	
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(6, defaultRecordSet.getByte(2));	
 				
-				assertFalse(recordSet.next());
+				assertFalse(defaultRecordSet.next());
 								
-				recordSet = cacTimeSeries.read(timestamp, timestamp + 20000);
+				defaultRecordSet = cacTimeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(1));
-				assertEquals(5, recordSet.getByte(2));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(5, defaultRecordSet.getByte(2));
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(1));
-				assertEquals(6, recordSet.getByte(2));	
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(6, defaultRecordSet.getByte(2));	
 				
-				assertFalse(recordSet.next());
+				assertFalse(defaultRecordSet.next());
 			}
 
 		} finally {
@@ -624,33 +624,33 @@ public class HorizonClientTest {
 				                                               .resolve("test")
 				                                               .resolve("DAX-1384383600000.ts"));
 				
-				RecordSet recordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
+				RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, recordSet.getTimestampInMillis(1));
-				assertEquals(5, recordSet.getByte(2));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(5, defaultRecordSet.getByte(2));
 				
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(recordSet.next());
+				assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, recordSet.getTimestampInMillis(1));
-				assertEquals(6, recordSet.getByte(2));	
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(6, defaultRecordSet.getByte(2));	
 				
-				assertFalse(recordSet.next());
+				assertFalse(defaultRecordSet.next());
 			}
 
 		} finally {
@@ -736,22 +736,22 @@ public class HorizonClientTest {
 				
 				timeSeries.write(timeSeriesRecordSet);
 				
-				RecordSet recordSet = timeSeries.read(timestamp + 200, timestamp + 400);
+				RecordSet defaultRecordSet = timeSeries.read(timestamp + 200, timestamp + 400);
 				
-				assertTrue(recordSet.next());
-				assertEquals(0, recordSet.getType());
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, recordSet.getTimestampInMillis(1));
-				assertEquals(10, recordSet.getByte(2));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(0, defaultRecordSet.getType());
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(10, defaultRecordSet.getByte(2));
 								
-				assertTrue(recordSet.next());
-				assertEquals(timestamp + 360, recordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 360, recordSet.getTimestampInMillis(1));
-				assertEquals(125, recordSet.getDecimalMantissa(2));
-				assertEquals(-1, recordSet.getDecimalExponent(2));
-				assertEquals(4, recordSet.getLong(3));
+				assertTrue(defaultRecordSet.next());
+				assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(0));
+				assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(1));
+				assertEquals(125, defaultRecordSet.getDecimalMantissa(2));
+				assertEquals(-1, defaultRecordSet.getDecimalExponent(2));
+				assertEquals(4, defaultRecordSet.getLong(3));
 				
-				assertFalse(recordSet.next());
+				assertFalse(defaultRecordSet.next());
 			}
 
 		} finally {

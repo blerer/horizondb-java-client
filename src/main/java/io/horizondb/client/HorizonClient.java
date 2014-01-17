@@ -15,11 +15,11 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.DatabaseDefinition;
 import io.horizondb.model.protocol.GetDatabaseRequestPayload;
 import io.horizondb.model.protocol.GetDatabaseResponsePayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.schema.DatabaseDefinition;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;

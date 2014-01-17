@@ -15,11 +15,11 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.DatabaseDefinition;
-import io.horizondb.model.TimeSeriesDefinition;
 import io.horizondb.model.protocol.GetTimeSeriesResponsePayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.schema.DatabaseDefinition;
+import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import static org.apache.commons.lang.Validate.notEmpty;
 import static org.apache.commons.lang.Validate.notNull;
@@ -75,7 +75,7 @@ public final class Database {
 	    
 		this.manager.send(Msgs.newCreateTimeSeriesRequest(this.definition.getName(), timeSeriesDefinition));
 		
-		return new TimeSeries(this.manager, timeSeriesDefinition);
+		return new TimeSeries(this.manager, this.definition, timeSeriesDefinition);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public final class Database {
 	    
     	GetTimeSeriesResponsePayload payload = Msgs.getPayload(response);
     	
-    	return new TimeSeries(this.manager, payload.getDefinition());
+    	return new TimeSeries(this.manager, this.definition, payload.getDefinition());
     }
     
     /**

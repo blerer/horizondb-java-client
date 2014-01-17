@@ -15,13 +15,13 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.DatabaseDefinition;
-import io.horizondb.model.FieldType;
-import io.horizondb.model.RecordIterator;
-import io.horizondb.model.RecordTypeDefinition;
-import io.horizondb.model.TimeSeriesDefinition;
 import io.horizondb.model.core.Record;
+import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.schema.DatabaseDefinition;
+import io.horizondb.model.schema.FieldType;
+import io.horizondb.model.schema.RecordTypeDefinition;
+import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
  * @author Benjamin
  *
  */
-public class RecordSetTest {
+public class DefaultRecordSetTest {
 
 	private TimeSeriesDefinition definition;
 	
@@ -67,7 +67,7 @@ public class RecordSetTest {
 	}
 	
 	@Test
-	public void testWithFullRecords() throws IOException {
+	public void testWithFullRecords() {
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -95,32 +95,32 @@ public class RecordSetTest {
 
 		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
 		
-		try (RecordSet recordSet = new RecordSet(this.definition, iterator)) {
+		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 
-			assertEquals(first.getTimestampInNanos(0), recordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), recordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), recordSet.getByte(2));
+			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 
-			assertEquals(second.getTimestampInNanos(0), recordSet.getTimestampInNanos(0));
-			assertEquals(second.getTimestampInMillis(1), recordSet.getTimestampInMillis(1));
-			assertEquals(second.getByte(2), recordSet.getByte(2));
+			assertEquals(second.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(second.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(second.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 
-			assertEquals(third.getTimestampInNanos(0), recordSet.getTimestampInNanos(0));
-			assertEquals(third.getTimestampInMillis(1), recordSet.getTimestampInMillis(1));
-			assertEquals(third.getByte(2), recordSet.getByte(2));
+			assertEquals(third.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(third.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(third.getByte(2), defaultRecordSet.getByte(2));
 
-			assertFalse(recordSet.next());
+			assertFalse(defaultRecordSet.next());
 		}
 	}
 
 	@Test
-	public void testWithDeltas() throws IOException {
+	public void testWithDeltas() {
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -148,32 +148,32 @@ public class RecordSetTest {
 
 		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
 		
-		try (RecordSet recordSet = new RecordSet(this.definition, iterator)) {
+		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 
-			assertEquals(first.getTimestampInNanos(0), recordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), recordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), recordSet.getByte(2));
+			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 			
-			assertEquals(13000900, recordSet.getTimestampInNanos(0));
-			assertEquals(13, recordSet.getTimestampInMillis(1));
-			assertEquals(3, recordSet.getByte(2));
+			assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(3, defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 			
-			assertEquals(13004400, recordSet.getTimestampInNanos(0));
-			assertEquals(13, recordSet.getTimestampInMillis(1));
-			assertEquals(1, recordSet.getByte(2));
+			assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(1, defaultRecordSet.getByte(2));
 
-			assertFalse(recordSet.next());
+			assertFalse(defaultRecordSet.next());
 		}
 	}
 	
 	@Test
-	public void testWithDeltasAndFullState() throws IOException {
+	public void testWithDeltasAndFullState() {
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -201,27 +201,27 @@ public class RecordSetTest {
 
 		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
 		
-		try (RecordSet recordSet = new RecordSet(this.definition, iterator)) {
+		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 
-			assertEquals(first.getTimestampInNanos(0), recordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), recordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), recordSet.getByte(2));
+			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 			
-			assertEquals(13000900, recordSet.getTimestampInNanos(0));
-			assertEquals(13, recordSet.getTimestampInMillis(1));
-			assertEquals(3, recordSet.getByte(2));
+			assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(3, defaultRecordSet.getByte(2));
 
-			assertTrue(recordSet.next());
+			assertTrue(defaultRecordSet.next());
 			
-			assertEquals(13004400, recordSet.getTimestampInNanos(0));
-			assertEquals(13, recordSet.getTimestampInMillis(1));
-			assertEquals(1, recordSet.getByte(2));
+			assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
+			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+			assertEquals(1, defaultRecordSet.getByte(2));
 
-			assertFalse(recordSet.next());
+			assertFalse(defaultRecordSet.next());
 		}
 	}
 	

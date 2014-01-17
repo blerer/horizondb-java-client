@@ -18,10 +18,10 @@ package io.horizondb.client;
 import io.horizondb.io.ReadableBuffer;
 import io.horizondb.model.DataChunk;
 import io.horizondb.model.Query;
-import io.horizondb.model.RecordIterator;
-import io.horizondb.model.TimeSeriesDefinition;
+import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
 import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -30,7 +30,7 @@ import static io.horizondb.io.encoding.VarInts.readByte;
 import static io.horizondb.io.encoding.VarInts.readUnsignedInt;
 
 /**
- * <code>RecordSet</code> which is received as a stream from the server.
+ * <code>DefaultRecordSet</code> which is received as a stream from the server.
  * 
  * @author Benjamin
  *
