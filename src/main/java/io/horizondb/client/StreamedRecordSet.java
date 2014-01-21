@@ -16,11 +16,11 @@
 package io.horizondb.client;
 
 import io.horizondb.io.ReadableBuffer;
-import io.horizondb.model.DataChunk;
-import io.horizondb.model.Query;
 import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
+import io.horizondb.model.protocol.DataChunkPayload;
 import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
@@ -43,9 +43,9 @@ final class StreamedRecordIterator implements RecordIterator {
 	private final Connection connection;
 	
 	/**
-	 * The query to be send to the server.
+	 * The queryPayload to be send to the server.
 	 */
-	private final Msg<Query> query;
+	private final Msg<QueryPayload> queryPayload;
 	
 	/**
 	 * The buffer containing the data being processed.
@@ -73,17 +73,17 @@ final class StreamedRecordIterator implements RecordIterator {
 	private boolean endOfStream;
 		
 	/**
-	 * Creates a new <code>StreamedRecordIterator</code> for the specified query.
+	 * Creates a new <code>StreamedRecordIterator</code> for the specified queryPayload.
 	 * 
 	 * @param definition the time series definition
 	 * @param connection the connection to the server
-	 * @param query the query to send to the server
+	 * @param queryPayload the queryPayload to send to the server
 	 */
-    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Msg<Query> query) {
+    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Msg<QueryPayload> queryPayload) {
     	
     	this.binaryRecords = definition.newBinaryRecords();
     	this.connection = connection;
-    	this.query = query;
+    	this.queryPayload = queryPayload;
     }
 
     /**    
@@ -130,13 +130,13 @@ final class StreamedRecordIterator implements RecordIterator {
 
 		if (this.buffer == null) {
 
-			Msg<DataChunk> msg = (Msg<DataChunk>) this.connection.sendRequestAndAwaitResponse(this.query);
+			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.queryPayload);
 
 			this.buffer = msg.getPayload().getBuffer();
 
 		} else if (!this.buffer.isReadable()) {
 
-			Msg<DataChunk> msg = (Msg<DataChunk>) this.connection.awaitResponse();
+			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.awaitResponse();
 			this.buffer = msg.getPayload().getBuffer();
 		}
 

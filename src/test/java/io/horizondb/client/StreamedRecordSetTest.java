@@ -20,14 +20,13 @@ import io.horizondb.io.Buffer;
 import io.horizondb.io.ByteWriter;
 import io.horizondb.io.buffers.Buffers;
 import io.horizondb.io.encoding.VarInts;
-import io.horizondb.model.DataChunk;
-import io.horizondb.model.PartitionId;
-import io.horizondb.model.Query;
 import io.horizondb.model.TimeRange;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.protocol.DataChunkPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.OpCode;
+import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.FieldType;
 import io.horizondb.model.schema.RecordTypeDefinition;
@@ -77,12 +76,12 @@ public class StreamedRecordSetTest {
 
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<Query> request = createRequest();
+		Msg<QueryPayload> request = createRequest();
 		
 		Buffer heapBuffer = Buffers.allocate(100);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -102,7 +101,7 @@ public class StreamedRecordSetTest {
 
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<Query> request = createRequest();
+		Msg<QueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -116,7 +115,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, first);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -145,7 +144,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<Query> request = createRequest();
+		Msg<QueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -171,7 +170,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, third);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -215,7 +214,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<Query> request = createRequest();
+		Msg<QueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -239,7 +238,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, first);
 		writeRecord(heapBuffer, second);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(20);
@@ -247,7 +246,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, third);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
-		response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.awaitResponse()).andReturn(response);
 		
 		connection.close();
@@ -292,7 +291,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<Query> request = createRequest();
+		Msg<QueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -317,14 +316,14 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, second);
 		writeRecord(heapBuffer, third);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(27);
 		
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
-		response = Msg.newResponseMsg(request.getHeader(), new DataChunk(heapBuffer));
+		response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.awaitResponse()).andReturn(response);
 		
 		connection.close();
@@ -382,16 +381,14 @@ public class StreamedRecordSetTest {
 	 * 
 	 * @return the request message.
 	 */
-    private Msg<Query> createRequest() {
+    private static Msg<QueryPayload> createRequest() {
 	    long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
 		
 		TimeRange range = new TimeRange(timestamp, timestamp + 20000);
-		
-		TimeRange partitionTimeRange = this.definition.getPartitionTimeRange(timestamp);
-		
-		Query query = new Query(new PartitionId("test", "test", partitionTimeRange.getStart()), range);
 
-		Msg<Query> request = Msg.newRequestMsg(OpCode.QUERY, query);
+		QueryPayload queryPayload = new QueryPayload("test", "test", range);
+
+		Msg<QueryPayload> request = Msg.newRequestMsg(OpCode.QUERY, queryPayload);
 	    return request;
     }
 

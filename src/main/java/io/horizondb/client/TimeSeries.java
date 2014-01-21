@@ -15,13 +15,11 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.PartitionId;
-import io.horizondb.model.Query;
-import io.horizondb.model.RecordBatch;
 import io.horizondb.model.TimeRange;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.protocol.Msg;
-import io.horizondb.model.protocol.OpCode;
+import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
@@ -94,12 +92,10 @@ public final class TimeSeries {
 		
             List<? extends Record> records = multimap.get(range);
 
-            RecordBatch batch = new RecordBatch(this.databaseDefinition.getName(),
-                                                this.seriesDefinition.getSeriesName(),
-                                                range.getStart(),
-                                                records);
-
-            this.manager.send(Msg.newRequestMsg(OpCode.BATCH_INSERT, batch));
+            this.manager.send(Msgs.newBulkWriteRequest(this.databaseDefinition.getName(),
+                                                       this.seriesDefinition.getSeriesName(),
+                                                       range,
+                                                       records));
 		}
 	}
 	
@@ -107,13 +103,9 @@ public final class TimeSeries {
 
 		TimeRange range = new TimeRange(startTimeInMillis, endTimeInMillis);
 
-		TimeRange partitionTimeRange = this.seriesDefinition.getPartitionTimeRange(startTimeInMillis);
-
-		PartitionId id = new PartitionId(this.seriesDefinition.getDatabaseName(),
-		                                 this.seriesDefinition.getSeriesName(),
-		                                 partitionTimeRange.getStart());
-
-		Msg<Query> query = Msg.newRequestMsg(OpCode.QUERY, new Query(id, range));
+		Msg<QueryPayload> query = Msgs.newQueryRequest(this.seriesDefinition.getDatabaseName(),
+		                                               this.seriesDefinition.getSeriesName(),
+		                                               range);
 
 		return new DefaultRecordSet(this.seriesDefinition, new StreamedRecordIterator(this.seriesDefinition,
 		                                                                  this.manager.getConnection(),
