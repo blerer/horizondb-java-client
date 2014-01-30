@@ -70,7 +70,7 @@ public final class TimeSeries {
 	 * @return the time series name.
 	 */
     public String getName() {
-	    return this.seriesDefinition.getSeriesName();
+	    return this.seriesDefinition.getName();
     }
 	
 	public RecordSet.Builder newRecordSetBuilder() {
@@ -82,7 +82,7 @@ public final class TimeSeries {
 
 		Validate.isTrue(this.seriesDefinition.equals(recordSet.getTimeSeriesDefinition()), 
 		                "the recordSet is not associated to this time series but to " 
-		                		+ this.databaseDefinition.getName() + "." + this.seriesDefinition.getSeriesName());
+		                		+ this.databaseDefinition.getName() + "." + this.seriesDefinition.getName());
 		
 		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
 		
@@ -93,7 +93,7 @@ public final class TimeSeries {
             List<? extends Record> records = multimap.get(range);
 
             this.manager.send(Msgs.newBulkWriteRequest(this.databaseDefinition.getName(),
-                                                       this.seriesDefinition.getSeriesName(),
+                                                       this.seriesDefinition.getName(),
                                                        range,
                                                        records));
 		}
@@ -103,8 +103,8 @@ public final class TimeSeries {
 
 		TimeRange range = new TimeRange(startTimeInMillis, endTimeInMillis);
 
-		Msg<QueryPayload> query = Msgs.newQueryRequest(this.seriesDefinition.getDatabaseName(),
-		                                               this.seriesDefinition.getSeriesName(),
+		Msg<QueryPayload> query = Msgs.newQueryRequest(this.databaseDefinition.getName(),
+		                                               this.seriesDefinition.getName(),
 		                                               range);
 
 		return new DefaultRecordSet(this.seriesDefinition, new StreamedRecordIterator(this.seriesDefinition,
