@@ -21,7 +21,7 @@ import io.horizondb.io.files.FileUtils;
 import io.horizondb.model.schema.RecordTypeDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 import io.horizondb.test.AssertFiles;
-import io.horizondb.db.utils.TimeUtils;
+import io.horizondb.db.util.TimeUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

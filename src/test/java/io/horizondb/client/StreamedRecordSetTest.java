@@ -15,7 +15,7 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.db.utils.TimeUtils;
+import io.horizondb.db.util.TimeUtils;
 import io.horizondb.io.Buffer;
 import io.horizondb.io.ByteWriter;
 import io.horizondb.io.buffers.Buffers;
