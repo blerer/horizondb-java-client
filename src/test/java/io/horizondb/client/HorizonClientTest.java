@@ -364,12 +364,24 @@ public class HorizonClientTest {
 				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
 				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
 				assertEquals(5, defaultRecordSet.getLong(2));
+				
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+				
+				assertFalse(defaultRecordSet.next());
 			}
 
 		} finally {
 			
 			server.shutdown();
 		}
+		
+        AssertFiles.assertFileExists(this.testDirectory.resolve("data")
+                                     .resolve("test")
+                                     .resolve("DAX-1384383600000.ts"));
 		
 		server = new HorizonServer(configuration);
 		
@@ -395,6 +407,14 @@ public class HorizonClientTest {
 				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
 				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
 				assertEquals(5, defaultRecordSet.getLong(2));
+				
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+                
+                assertFalse(defaultRecordSet.next());
 			}
 
 		} finally {
