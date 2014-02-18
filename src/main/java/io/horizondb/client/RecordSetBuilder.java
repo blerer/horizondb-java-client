@@ -15,6 +15,7 @@
  */
 package io.horizondb.client;
 
+import io.horizondb.client.RecordSet.Builder;
 import io.horizondb.model.core.RecordListMultimapBuilder;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
@@ -81,6 +82,15 @@ final class RecordSetBuilder implements RecordSet.Builder {
     @Override
     public final RecordSetBuilder setInt(int index, int i) {
         this.builder.setInt(index, i);
+        return this;
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setDouble(int index, double d) {
+        this.builder.setDouble(index, d);
         return this;
     }
 
