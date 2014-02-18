@@ -73,16 +73,30 @@ public final class TimeSeries {
 	    return this.seriesDefinition.getName();
     }
 	
+    /**
+     * Creates a new <code>RecordSet.Builder</code> instance.
+     * @return a new <code>RecordSet.Builder</code> instance.
+     */
 	public RecordSet.Builder newRecordSetBuilder() {
 		
 		return new RecordSetBuilder(this.seriesDefinition);
 	}
 	
+	/**
+	 * Writes the specified set of records into this time series.
+	 * 
+	 * @param recordSet the set of records to write.
+	 */
 	public void write(RecordSet recordSet) {
 
+	    Validate.isTrue(recordSet instanceof PartitionAwareRecordSet, 
+	                    "RecordSet of type " + recordSet.getClass() + " are not supported.");
+	    
 		Validate.isTrue(this.seriesDefinition.equals(recordSet.getTimeSeriesDefinition()), 
 		                "the recordSet is not associated to this time series but to " 
 		                		+ this.databaseDefinition.getName() + "." + this.seriesDefinition.getName());
+		
+		
 		
 		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
 		
@@ -99,6 +113,14 @@ public final class TimeSeries {
 		}
 	}
 	
+	/**
+	 * Reads all the records of this time series that are included into the specified time range. 
+	 * 
+	 * @param startTimeInMillis the start time in millisecond since epoch
+	 * @param endTimeInMillis the end time in millisecond since epoch
+	 * @return a <code>RecordSet</code> containing all the records of this time series that are included into 
+	 * the specified time range
+	 */
 	public RecordSet read(long startTimeInMillis, long endTimeInMillis) {
 
 		TimeRange range = new TimeRange(startTimeInMillis, endTimeInMillis);

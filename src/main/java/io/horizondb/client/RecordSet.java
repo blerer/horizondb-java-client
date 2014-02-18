@@ -216,6 +216,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setDecimal(int index, long mantissa, int exponent);
+        
+        /**
+         * Sets the specified field to the specified double value. 
+         * 
+         * @param index the field index
+         * @param d the double value
+         * @return this <code>Builder</code>
+         */
+        Builder setDouble(int index, double d);
 
         /**
          * Builds a new <code>RecordSet</code> instance.
