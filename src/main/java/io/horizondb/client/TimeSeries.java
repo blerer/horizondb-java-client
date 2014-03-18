@@ -92,12 +92,10 @@ public final class TimeSeries {
 	    Validate.isTrue(recordSet instanceof PartitionAwareRecordSet, 
 	                    "RecordSet of type " + recordSet.getClass() + " are not supported.");
 	    
-		Validate.isTrue(this.seriesDefinition.equals(recordSet.getTimeSeriesDefinition()), 
-		                "the recordSet is not associated to this time series but to " 
+		Validate.isTrue(isAssociatedToThisTimeSeries(recordSet), 
+		                "the recordSet is not associated to " 
 		                		+ this.databaseDefinition.getName() + "." + this.seriesDefinition.getName());
-		
-		
-		
+
 		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
 		
 		ListMultimap<TimeRange, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
@@ -133,4 +131,19 @@ public final class TimeSeries {
 		                                                                  this.manager.getConnection(),
 		                                                                  query));
 	}
+	
+    /**
+     * Returns <code>true</code> if the specified record set is associated to this time series.
+     * 
+     * @param recordSet the record set to check
+     * @return <code>true</code> if the specified record set is associated to this time series <code>false</code>
+     * otherwise
+     */
+    private boolean isAssociatedToThisTimeSeries(RecordSet recordSet) {
+        
+        final RecordSetDefinition recordSetDefinition = recordSet.getRecordSetDefinition();
+        
+        return (recordSetDefinition instanceof TimeSeriesDefinitionAdapter) &&
+                ((TimeSeriesDefinitionAdapter) recordSetDefinition).getTimeSeriesDefinition().equals(this.seriesDefinition);
+    }
 }

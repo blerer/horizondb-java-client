@@ -15,7 +15,6 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.schema.TimeSeriesDefinition;
 
 /**
  * Represents a set of records on which a user can iterate.
@@ -26,10 +25,10 @@ import io.horizondb.model.schema.TimeSeriesDefinition;
 public interface RecordSet extends AutoCloseable {
 
     /**
-     * Returns the time series definition.
-     * @return the time series definition.
+     * Returns the record set definition.
+     * @return the record set definition.
      */
-    TimeSeriesDefinition getTimeSeriesDefinition();
+    RecordSetDefinition getRecordSetDefinition();
 
     /**
      * Moves the cursor forward one record from its current position. A

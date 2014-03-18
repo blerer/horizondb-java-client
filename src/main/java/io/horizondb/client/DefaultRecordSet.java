@@ -33,9 +33,9 @@ import static org.apache.commons.lang.Validate.isTrue;
 class DefaultRecordSet implements RecordSet {
 
 	/**
-	 * The definition of the time series targeted 
+	 * The definition of the record set. 
 	 */
-	private final TimeSeriesDefinition definition;
+	private final RecordSetDefinition definition;
 	
 	/**
 	 * The current record being exposed.
@@ -52,14 +52,26 @@ class DefaultRecordSet implements RecordSet {
 	 */
 	private final RecordIterator iterator;
 
+	 /**
+     * Creates a new <code>DefaultRecordSet</code> for the specified time series that will iterate over the specified 
+     * records.
+     * 
+     * @param definition the time series definition
+     * @param iterator the record iterator
+     */
+    DefaultRecordSet(TimeSeriesDefinition definition, RecordIterator iterator) {
+
+        this(new TimeSeriesDefinitionAdapter(definition), iterator);
+    }
+	
 	/**
-	 * Creates a new <code>DefaultRecordSet</code> for the specified time series that will iterate over the specified 
+	 * Creates a new <code>DefaultRecordSet</code> that will iterate over the specified 
 	 * records.
 	 * 
-	 * @param definition the time series definition
+	 * @param definition the records definition
 	 * @param iterator the record iterator
 	 */
-	DefaultRecordSet(TimeSeriesDefinition definition, RecordIterator iterator) {
+	DefaultRecordSet(RecordSetDefinition definition, RecordIterator iterator) {
 
 		this.definition = definition;
 		this.records = definition.newRecords();
@@ -252,7 +264,7 @@ class DefaultRecordSet implements RecordSet {
      * {@inheritDoc}
      */
 	@Override
-    public final TimeSeriesDefinition getTimeSeriesDefinition() {
+    public final RecordSetDefinition getRecordSetDefinition() {
 		return this.definition;
 	}
 
