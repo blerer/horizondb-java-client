@@ -98,9 +98,25 @@ class DefaultRecordSet implements RecordSet {
      * {@inheritDoc}
      */
     @Override
+    public final long getTimestampInSeconds(String name) {
+        return getTimestampInSeconds(fieldIndex(name)) ;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public final long getTimestampInMillis(int index) {
         checkState();
         return this.current.getTimestampInMillis(index);
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final long getTimestampInMillis(String name) {
+        return getTimestampInMillis(fieldIndex(name));
     }
 
     /**
@@ -112,6 +128,14 @@ class DefaultRecordSet implements RecordSet {
         return this.current.getTimestampInMicros(index);
     }
 
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final long getTimestampInMicros(String name) {
+        return getTimestampInMicros(fieldIndex(name));
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -119,6 +143,22 @@ class DefaultRecordSet implements RecordSet {
     public final long getTimestampInNanos(int index) {
         checkState();
         return this.current.getTimestampInNanos(index);
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final long getTimestampInNanos(String name) {
+        return getTimestampInNanos(fieldIndex(name));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLong(String name) {
+        return getLong(fieldIndex(name));
     }
 
     /**
@@ -139,6 +179,22 @@ class DefaultRecordSet implements RecordSet {
         return this.current.getInt(index);
     }
 
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final int getInt(String name) {
+        return getInt(this.fieldIndex(name));
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final int getByte(String name) {
+        return getByte(fieldIndex(name));
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -155,6 +211,22 @@ class DefaultRecordSet implements RecordSet {
     public final long getDecimalMantissa(int index) {
         checkState();
         return this.current.getDecimalMantissa(index);
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public final long getDecimalMantissa(String name) {
+        return getDecimalMantissa(fieldIndex(name));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public byte getDecimalExponent(String name) {
+        return getDecimalExponent(fieldIndex(name));
     }
 
     /**
@@ -247,5 +319,15 @@ class DefaultRecordSet implements RecordSet {
      */
     protected void onNext() {
 
+    }
+    
+    /**
+     * Returns the index of the field with the specified name.
+     * 
+     * @param name the field name
+     * @return the index of the field with the specified name
+     */
+    private int fieldIndex(String name) {
+        return this.definition.getFieldIndex(this.current.getType(), name);
     }
 }

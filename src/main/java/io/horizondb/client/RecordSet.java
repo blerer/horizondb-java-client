@@ -55,6 +55,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a time stamp in seconds.
      */
     long getTimestampInSeconds(int index);
+    
+    /**
+     * Returns the value of the specified field as a time stamp in seconds.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a time stamp in seconds.
+     */
+    long getTimestampInSeconds(String name);
 
     /**
      * Returns the value of the specified field as a time stamp in milliseconds.
@@ -63,6 +71,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a time stamp in milliseconds.
      */
     long getTimestampInMillis(int index);
+    
+    /**
+     * Returns the value of the specified field as a time stamp in milliseconds.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a time stamp in milliseconds.
+     */
+    long getTimestampInMillis(String name);
 
     /**
      * Returns the value of the specified field as a time stamp in microseconds.
@@ -71,6 +87,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a time stamp in microseconds.
      */
     long getTimestampInMicros(int index);
+    
+    /**
+     * Returns the value of the specified field as a time stamp in microseconds.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a time stamp in microseconds.
+     */
+    long getTimestampInMicros(String name);
 
     /**
      * Returns the value of the specified field as a time stamp in nanoseconds.
@@ -79,6 +103,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a time stamp in nanoseconds.
      */
     long getTimestampInNanos(int index);
+    
+    /**
+     * Returns the value of the specified field as a time stamp in nanoseconds.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a time stamp in nanoseconds.
+     */
+    long getTimestampInNanos(String name);
 
     /**
      * Returns the value of the specified field as a <code>long</code>.
@@ -87,6 +119,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a <code>long</code>.
      */
     long getLong(int index);
+    
+    /**
+     * Returns the value of the specified field as a <code>long</code>.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a <code>long</code>.
+     */
+    long getLong(String name);
 
     /**
      * Returns the value of the specified field as an <code>int</code>.
@@ -95,6 +135,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as an <code>int</code>.
      */
     int getInt(int index);
+    
+    /**
+     * Returns the value of the specified field as an <code>int</code>.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as an <code>int</code>.
+     */
+    int getInt(String name);
 
     /**
      * Returns the value of the specified field as a <code>byte</code>.
@@ -103,6 +151,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the specified field as a <code>byte</code>.
      */
     int getByte(int index);
+    
+    /**
+     * Returns the value of the specified field as a <code>byte</code>.
+     * 
+     * @param name the field name.
+     * @return the value of the specified field as a <code>byte</code>.
+     */
+    int getByte(String name);
 
     /**
      * Returns the value of the mantissa of the specified decimal field.
@@ -111,6 +167,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the mantissa of the specified decimal field.
      */
     long getDecimalMantissa(int index);
+    
+    /**
+     * Returns the value of the mantissa of the specified decimal field.
+     * 
+     * @param name the field name.
+     * @return the value of the mantissa of the specified decimal field.
+     */
+    long getDecimalMantissa(String name);
 
     /**
      * Returns the value of the exponent of the specified decimal field.
@@ -119,6 +183,14 @@ public interface RecordSet extends AutoCloseable {
      * @return the value of the exponent of the specified decimal field.
      */
     byte getDecimalExponent(int index);
+    
+    /**
+     * Returns the value of the exponent of the specified decimal field.
+     * 
+     * @param name the field name.
+     * @return the value of the exponent of the specified decimal field.
+     */
+    byte getDecimalExponent(String name);
     
     /**
      * {@inheritDoc}
