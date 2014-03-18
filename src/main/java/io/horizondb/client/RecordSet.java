@@ -152,6 +152,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setLong(int index, long l);
+        
+        /**
+         * Sets the specified field to the specified <code>long</code> value. 
+         * 
+         * @param name the field name
+         * @param l the <code>long</code> value
+         * @return this <code>Builder</code>
+         */
+        Builder setLong(String name, long l);
 
         /**
          * Sets the specified field to the specified <code>int</code> value. 
@@ -161,6 +170,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setInt(int index, int i);
+        
+        /**
+         * Sets the specified field to the specified <code>int</code> value. 
+         * 
+         * @param name the field name
+         * @param i the <code>int</code> value
+         * @return this <code>Builder</code>
+         */
+        Builder setInt(String name, int i);
 
         /**
          * Sets the specified field to the specified timestamp value. 
@@ -170,6 +188,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setTimestampInNanos(int index, long l);
+        
+        /**
+         * Sets the specified field to the specified timestamp value. 
+         * 
+         * @param name the field name
+         * @param l the timestamp value in nanoseconds.
+         * @return this <code>Builder</code>
+         */
+        Builder setTimestampInNanos(String name, long l);
 
         /**
          * Sets the specified field to the specified timestamp value. 
@@ -179,6 +206,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setTimestampInMicros(int index, long l);
+        
+        /**
+         * Sets the specified field to the specified timestamp value. 
+         * 
+         * @param name the field name
+         * @param l the timestamp value in microseconds.
+         * @return this <code>Builder</code>
+         */
+        Builder setTimestampInMicros(String name, long l);
 
         /**
          * Sets the specified field to the specified timestamp value. 
@@ -188,6 +224,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setTimestampInMillis(int index, long l);
+        
+        /**
+         * Sets the specified field to the specified timestamp value. 
+         * 
+         * @param name the field name
+         * @param l the timestamp value in milliseconds.
+         * @return this <code>Builder</code>
+         */
+        Builder setTimestampInMillis(String name, long l);
 
         /**
          * Sets the specified field to the specified timestamp value. 
@@ -197,6 +242,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setTimestampInSeconds(int index, long l);
+        
+        /**
+         * Sets the specified field to the specified timestamp value. 
+         * 
+         * @param name the field name
+         * @param l the timestamp value in seconds.
+         * @return this <code>Builder</code>
+         */
+        Builder setTimestampInSeconds(String name, long l);
 
         /**
          * Sets the specified field to the specified <code>byte</code> value. 
@@ -206,6 +260,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setByte(int index, int b);
+        
+        /**
+         * Sets the specified field to the specified <code>byte</code> value. 
+         * 
+         * @param name the field name
+         * @param b the <code>byte</code> value
+         * @return this <code>Builder</code>
+         */
+        Builder setByte(String name, int b);
 
         /**
          * Sets the specified field to the specified decimal value. 
@@ -218,6 +281,16 @@ public interface RecordSet extends AutoCloseable {
         Builder setDecimal(int index, long mantissa, int exponent);
         
         /**
+         * Sets the specified field to the specified decimal value. 
+         * 
+         * @param name the field name
+         * @param mantissa the decimal mantissa
+         * @param exponent the decimal exponent
+         * @return this <code>Builder</code>
+         */
+        Builder setDecimal(String name, long mantissa, int exponent);
+        
+        /**
          * Sets the specified field to the specified double value. 
          * 
          * @param index the field index
@@ -225,6 +298,15 @@ public interface RecordSet extends AutoCloseable {
          * @return this <code>Builder</code>
          */
         Builder setDouble(int index, double d);
+        
+        /**
+         * Sets the specified field to the specified double value. 
+         * 
+         * @param name the field name
+         * @param d the double value
+         * @return this <code>Builder</code>
+         */
+        Builder setDouble(String name, double d);
 
         /**
          * Builds a new <code>RecordSet</code> instance.

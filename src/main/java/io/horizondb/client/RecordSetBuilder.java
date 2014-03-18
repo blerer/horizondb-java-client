@@ -76,12 +76,39 @@ final class RecordSetBuilder implements RecordSet.Builder {
         return this;
     }
 
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setLong(String name, long l) {
+        this.builder.setLong(name, l);
+        return this;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public final RecordSetBuilder setInt(int index, int i) {
         this.builder.setInt(index, i);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */    
+    @Override
+    public Builder setInt(String name, int i) {
+        this.builder.setInt(name, i);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setDouble(String name, double d) {
+        this.builder.setDouble(name, d);
         return this;
     }
 
@@ -103,6 +130,15 @@ final class RecordSetBuilder implements RecordSet.Builder {
         return this;
     }
 
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setTimestampInNanos(String name, long l) {
+        this.builder.setTimestampInNanos(name, l);
+        return this;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -121,12 +157,40 @@ final class RecordSetBuilder implements RecordSet.Builder {
         return this;
     }
 
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setTimestampInMillis(String name, long l) {
+        this.builder.setTimestampInMillis(name, l);
+        return this;
+    }
+    
     /**
      * {@inheritDoc}
      */
     @Override
     public final RecordSetBuilder setTimestampInSeconds(int index, long l) {
         this.builder.setTimestampInSeconds(index, l);
+        return this;
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setTimestampInMicros(String name, long l) {
+        this.builder.setTimestampInMicros(name, l);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setTimestampInSeconds(String name, long l) {
+        this.builder.setTimestampInSeconds(name, l);
         return this;
     }
 
@@ -136,6 +200,24 @@ final class RecordSetBuilder implements RecordSet.Builder {
     @Override
     public final RecordSetBuilder setByte(int index, int b) {
         this.builder.setByte(index, b);
+        return this;
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setByte(String name, int b) {
+        this.builder.setByte(name, b);
+        return this;
+    }
+
+    /**    
+     * {@inheritDoc}
+     */
+    @Override
+    public Builder setDecimal(String name, long mantissa, int exponent) {
+        this.builder.setDecimal(name, mantissa, exponent);
         return this;
     }
 
