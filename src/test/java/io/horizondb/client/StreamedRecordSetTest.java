@@ -52,7 +52,7 @@ public class StreamedRecordSetTest {
 	public void setUp() {
 		
 		RecordTypeDefinition recordType = RecordTypeDefinition.newBuilder("ExchangeState")
-		                                                      .addMillisecondTimestampField("timestamp")
+		                                                      .addMillisecondTimestampField("exchangeTimestamp")
 		                                                      .addByteField("status")
 		                                                      .build();
 		
