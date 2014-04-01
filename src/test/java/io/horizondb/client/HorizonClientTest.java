@@ -17,11 +17,11 @@ package io.horizondb.client;
 
 import io.horizondb.db.Configuration;
 import io.horizondb.db.HorizonServer;
+import io.horizondb.db.util.TimeUtils;
 import io.horizondb.io.files.FileUtils;
 import io.horizondb.model.schema.RecordTypeDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 import io.horizondb.test.AssertFiles;
-import io.horizondb.db.util.TimeUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -424,6 +424,157 @@ public class HorizonClientTest {
 	}
 	
 	@Test
+    public void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .commitLogSegmentSize(200)
+                                                   .maximumNumberOfCommitLogSegments(3)
+                                                   .build();
+        
+        HorizonServer server = new HorizonServer(configuration);
+            
+        try {
+        
+            server.start();
+            
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+                
+                RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setDecimal(1, 125, -1)
+                                                          .setLong(2, 10)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 100)
+                                                          .setDecimal(1, 12, 0)
+                                                          .setLong(2, 5)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 350)
+                                                          .setDecimal(1, 11, 0)
+                                                          .setLong(2, 10)
+                                                          .build();
+                
+                timeSeries.write(timeSeriesRecordSet);
+                
+                timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 400)
+                                                .setDecimal(1, 125, -1)
+                                                .setLong(2, 10)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 500)
+                                                .setDecimal(1, 12, 0)
+                                                .setLong(2, 5)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 650)
+                                                .setDecimal(1, 11, 0)
+                                                .setLong(2, 10)
+                                                .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+                
+                timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 800)
+                                                .setDecimal(1, 125, -1)
+                                                .setLong(2, 10)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 850)
+                                                .setDecimal(1, 12, 0)
+                                                .setLong(2, 5)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 900)
+                                                .setDecimal(1, 11, 0)
+                                                .setLong(2, 10)
+                                                .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+                
+                timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                        .newRecord("Trade")
+                        .setTimestampInMillis(0, timestamp + 1000)
+                        .setDecimal(1, 125, -1)
+                        .setLong(2, 10)
+                        .newRecord("Trade")
+                        .setTimestampInMillis(0, timestamp + 1050)
+                        .setDecimal(1, 12, 0)
+                        .setLong(2, 5)
+                        .newRecord("Trade")
+                        .setTimestampInMillis(0, timestamp + 1200)
+                        .setDecimal(1, 11, 0)
+                        .setLong(2, 10)
+                        .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+            }
+
+        } finally {
+            
+            server.shutdown();
+        }
+        
+        server = new HorizonServer(configuration);
+        
+        try {
+        
+            server.start();
+            
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.getDatabase("test");
+
+                TimeSeries timeSeries = database.getTimeSeries("DAX");
+                
+                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"), TimeUtils.getTime("2013.11.14 23:59:59.999"));
+                
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+                
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+                
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+                
+                assertTrue(defaultRecordSet.next());
+            }
+
+        } finally {
+            
+            server.shutdown();
+        }
+    }
+	
+	@Test
 	public void testInsertWithForceFlushFromCache() throws Exception {
 
 		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
@@ -507,8 +658,6 @@ public class HorizonClientTest {
 				                                   .build();
 				
 				cacTimeSeries.write(timeSeriesRecordSet);
-				
-				Thread.sleep(100);
 				
 				AssertFiles.assertFileExists(this.testDirectory.resolve("data")
 				                                               .resolve("test")
