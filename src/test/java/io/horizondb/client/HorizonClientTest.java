@@ -39,408 +39,212 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Benjamin
- *
+ * 
  */
 public class HorizonClientTest {
 
-	private Path testDirectory;
-	
-	@Before
-	public void setUp() throws IOException {
-		this.testDirectory = Files.createTempDirectory("test");
-	}
-	
-	@After
-	public void tearDown() throws IOException {
-		FileUtils.forceDelete(this.testDirectory);
-	}
-	
-	@Test
-	public void testGetDatabaseWithNotExistingDatabase() throws Exception {
+    private Path testDirectory;
 
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-		
-		try {
-		
-			server.start();
-		
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+    @Before
+    public void setUp() throws IOException {
+        this.testDirectory = Files.createTempDirectory("test");
+    }
 
-				client.getDatabase("test");
-				Assert.fail();
-				
-			}  catch (HorizonDBException e) {
-				
-				Assert.assertTrue(true);
-			}
-		
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	
-	@Test
-	public void testCreateDatabase() throws Exception {
+    @After
+    public void tearDown() throws IOException {
+        FileUtils.forceDelete(this.testDirectory);
+    }
 
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-		
-		try {
-		
-			server.start();
-		
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+    @Test
+    public void testGetDatabaseWithNotExistingDatabase() throws Exception {
 
-				client.newDatabase("test");
-			} 
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				Database database = client.getDatabase("Test");
-				Assert.assertEquals("test", database.getName());				
-			} 
-		
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testCreateDatabaseWithInvalidName() throws Exception {
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-		
-		try {
-		
-			server.start();
-		
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				client.setQueryTimeoutInSeconds(3);
-				client.newDatabase(" ");
-				Assert.fail();
-				
-			} catch (HorizonDBException e) {
-				
-				Assert.assertTrue(true);
-			}
-		
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testCreateTimeSeries() throws Exception {
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				Database database = client.newDatabase("test");
-
-				RecordTypeDefinition quote = RecordTypeDefinition.newBuilder("Quote")
-				                                                 .addDecimalField("bestBid")
-				                                                 .addDecimalField("bestAsk")
-				                                                 .addIntegerField("bidVolume")
-				                                                 .addIntegerField("askVolume")
-				                                                 .build();
-
-				TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                          .timeUnit(TimeUnit.NANOSECONDS)
-				                                          .addRecordType(quote)
-				                                          .build();
-
-				database.createTimeSeries(definition);
-			}
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				TimeSeries timeSeries = client.getDatabase("Test").getTimeSeries("DAX");
-				Assert.assertEquals("DAX", timeSeries.getName());				
-			} 
-
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testGetTimeSeriesWithNotExistingSeries() throws Exception {
-
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-
-		HorizonServer server = new HorizonServer(configuration);
-
-		try {
-
-			server.start();
-
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				client.newDatabase("test");
-			}
-
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				Database database = client.getDatabase("test");
-				database.getTimeSeries("DAX30");
-
-				Assert.fail();
-
-			} catch (HorizonDBException e) {
-
-				Assert.assertTrue(true);
-			}
-
-		} finally {
-
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testInsertIntoTimeSeries() throws Exception {
-
-		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				client.setQueryTimeoutInSeconds(120);
-				Database database = client.newDatabase("test");
-
-				RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
-				                                                 .addDecimalField("price")
-				                                                 .addLongField("volume")
-				                                                 .build();
-
-				TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                          .timeUnit(TimeUnit.MILLISECONDS)
-				                                          .addRecordType(trade)
-				                                          .build();
-
-				TimeSeries timeSeries = database.createTimeSeries(definition);
-				
-				RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp)
-				                                          .setDecimal(1, 125, -1)
-				                                          .setLong(2, 10)
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp + 100)
-				                                          .setDecimal(1, 12, 0)
-				                                          .setLong(2, 5)
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp + 350)
-				                                          .setDecimal(1, 11, 0)
-				                                          .setLong(2, 10)
-				                                          .build();
-				
-				timeSeries.write(timeSeriesRecordSet);
-				
-				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(10, defaultRecordSet.getLong(2));
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(5, defaultRecordSet.getLong(2));
-			}
-
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testInsertIntoTimeSeriesWithReplay() throws Exception {
-
-		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				client.setQueryTimeoutInSeconds(120);
-				Database database = client.newDatabase("test");
-
-				RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
-				                                                 .addDecimalField("price")
-				                                                 .addLongField("volume")
-				                                                 .build();
-
-				TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                          .timeUnit(TimeUnit.MILLISECONDS)
-				                                          .addRecordType(trade)
-				                                          .build();
-
-				TimeSeries timeSeries = database.createTimeSeries(definition);
-				
-				RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp)
-				                                          .setDecimal(1, 125, -1)
-				                                          .setLong(2, 10)
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp + 100)
-				                                          .setDecimal(1, 12, 0)
-				                                          .setLong(2, 5)
-				                                          .newRecord("Trade")
-				                                          .setTimestampInMillis(0, timestamp + 350)
-				                                          .setDecimal(1, 11, 0)
-				                                          .setLong(2, 10)
-				                                          .build();
-				
-				timeSeries.write(timeSeriesRecordSet);
-				
-				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(10, defaultRecordSet.getLong(2));
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(5, defaultRecordSet.getLong(2));
-				
-                assertTrue(defaultRecordSet.next());
-                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
-                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-                assertEquals(10, defaultRecordSet.getLong(2));
-				
-				assertFalse(defaultRecordSet.next());
-			}
-
-		} finally {
-			
-			server.shutdown();
-		}
-		
-        AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-                                     .resolve("test")
-                                     .resolve("DAX-1384383600000.ts"));
-		
-		server = new HorizonServer(configuration);
-		
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
-				client.setQueryTimeoutInSeconds(120);
-				TimeSeries timeSeries = client.getDatabase("test").getTimeSeries("DAX");
-				
-				RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(10, defaultRecordSet.getLong(2));
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-				assertEquals(5, defaultRecordSet.getLong(2));
-				
-                assertTrue(defaultRecordSet.next());
-                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
-                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
-                assertEquals(10, defaultRecordSet.getLong(2));
-                
-                assertFalse(defaultRecordSet.next());
-			}
-
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-    public void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush() throws Exception {
-
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-        
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
                                                    .dataDirectory(this.testDirectory.resolve("data"))
-                                                   .commitLogSegmentSize(200)
-                                                   .maximumNumberOfCommitLogSegments(3)
                                                    .build();
-        
+
         HorizonServer server = new HorizonServer(configuration);
-            
+
         try {
-        
+
             server.start();
-            
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.getDatabase("test");
+                Assert.fail();
+
+            } catch (HorizonDBException e) {
+
+                Assert.assertTrue(true);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testCreateDatabase() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.newDatabase("test");
+            }
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                Database database = client.getDatabase("Test");
+                Assert.assertEquals("test", database.getName());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testCreateDatabaseWithInvalidName() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(3);
+                client.newDatabase(" ");
+                Assert.fail();
+
+            } catch (HorizonDBException e) {
+
+                Assert.assertTrue(true);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testCreateTimeSeries() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition quote = RecordTypeDefinition.newBuilder("Quote")
+                                                                 .addDecimalField("bestBid")
+                                                                 .addDecimalField("bestAsk")
+                                                                 .addIntegerField("bidVolume")
+                                                                 .addIntegerField("askVolume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.NANOSECONDS)
+                                                          .addRecordType(quote)
+                                                          .build();
+
+                database.createTimeSeries(definition);
+            }
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                TimeSeries timeSeries = client.getDatabase("Test").getTimeSeries("DAX");
+                Assert.assertEquals("DAX", timeSeries.getName());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testGetTimeSeriesWithNotExistingSeries() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.newDatabase("test");
+            }
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                Database database = client.getDatabase("test");
+                database.getTimeSeries("DAX30");
+
+                Assert.fail();
+
+            } catch (HorizonDBException e) {
+
+                Assert.assertTrue(true);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testInsertIntoTimeSeries() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
             try (HorizonClient client = new HorizonClient(configuration.getPort())) {
 
                 client.setQueryTimeoutInSeconds(120);
@@ -457,7 +261,7 @@ public class HorizonClientTest {
                                                           .build();
 
                 TimeSeries timeSeries = database.createTimeSeries(definition);
-                
+
                 RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
                                                           .newRecord("Trade")
                                                           .setTimestampInMillis(0, timestamp)
@@ -472,9 +276,202 @@ public class HorizonClientTest {
                                                           .setDecimal(1, 11, 0)
                                                           .setLong(2, 10)
                                                           .build();
-                
+
                 timeSeries.write(timeSeriesRecordSet);
-                
+
+                RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testInsertIntoTimeSeriesWithReplay() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+
+                RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setDecimal(1, 125, -1)
+                                                          .setLong(2, 10)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 100)
+                                                          .setDecimal(1, 12, 0)
+                                                          .setLong(2, 5)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 350)
+                                                          .setDecimal(1, 11, 0)
+                                                          .setLong(2, 10)
+                                                          .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+
+                RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+
+        AssertFiles.assertFileExists(this.testDirectory.resolve("data").resolve("test").resolve("DAX-1384383600000.ts"));
+
+        server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                TimeSeries timeSeries = client.getDatabase("test").getTimeSeries("DAX");
+
+                RecordSet defaultRecordSet = timeSeries.read(timestamp, timestamp + 20000);
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .commitLogSegmentSize(200)
+                                                   .maximumNumberOfCommitLogSegments(3)
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+
+                RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setDecimal(1, 125, -1)
+                                                          .setLong(2, 10)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 100)
+                                                          .setDecimal(1, 12, 0)
+                                                          .setLong(2, 5)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 350)
+                                                          .setDecimal(1, 11, 0)
+                                                          .setLong(2, 10)
+                                                          .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+
                 timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
                                                 .newRecord("Trade")
                                                 .setTimestampInMillis(0, timestamp + 400)
@@ -491,7 +488,7 @@ public class HorizonClientTest {
                                                 .build();
 
                 timeSeries.write(timeSeriesRecordSet);
-                
+
                 timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
                                                 .newRecord("Trade")
                                                 .setTimestampInMillis(0, timestamp + 800)
@@ -508,424 +505,540 @@ public class HorizonClientTest {
                                                 .build();
 
                 timeSeries.write(timeSeriesRecordSet);
-                
+
                 timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
-                        .newRecord("Trade")
-                        .setTimestampInMillis(0, timestamp + 1000)
-                        .setDecimal(1, 125, -1)
-                        .setLong(2, 10)
-                        .newRecord("Trade")
-                        .setTimestampInMillis(0, timestamp + 1050)
-                        .setDecimal(1, 12, 0)
-                        .setLong(2, 5)
-                        .newRecord("Trade")
-                        .setTimestampInMillis(0, timestamp + 1200)
-                        .setDecimal(1, 11, 0)
-                        .setLong(2, 10)
-                        .build();
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 1000)
+                                                .setDecimal(1, 125, -1)
+                                                .setLong(2, 10)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 1050)
+                                                .setDecimal(1, 12, 0)
+                                                .setLong(2, 5)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp + 1200)
+                                                .setDecimal(1, 11, 0)
+                                                .setLong(2, 10)
+                                                .build();
 
                 timeSeries.write(timeSeriesRecordSet);
             }
 
         } finally {
-            
+
             server.shutdown();
         }
-        
+
         server = new HorizonServer(configuration);
-        
+
         try {
-        
+
             server.start();
-            
+
             try (HorizonClient client = new HorizonClient(configuration.getPort())) {
 
                 client.setQueryTimeoutInSeconds(120);
                 Database database = client.getDatabase("test");
 
                 TimeSeries timeSeries = database.getTimeSeries("DAX");
-                
-                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"), TimeUtils.getTime("2013.11.14 23:59:59.999"));
-                
+
+                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"),
+                                                             TimeUtils.getTime("2013.11.14 23:59:59.999"));
+
                 assertTrue(defaultRecordSet.next());
                 assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
                 assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
                 assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
                 assertEquals(10, defaultRecordSet.getLong(2));
-                
+
                 assertTrue(defaultRecordSet.next());
                 assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
                 assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
                 assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
                 assertEquals(5, defaultRecordSet.getLong(2));
-                
+
                 assertTrue(defaultRecordSet.next());
                 assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
                 assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
                 assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
                 assertEquals(10, defaultRecordSet.getLong(2));
-                
+
                 assertTrue(defaultRecordSet.next());
             }
 
         } finally {
-            
+
             server.shutdown();
         }
     }
-	
-	@Test
-	public void testInsertWithForceFlushFromCache() throws Exception {
 
-		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .memTimeSeriesSize(60)
-		                                           .maximumMemoryUsageByMemTimeSeries(100)
-		                                           .cachesConcurrencyLevel(1)
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+    @Test
+    public void testInsertWithForceFlushFromCache() throws Exception {
 
-				client.setQueryTimeoutInSeconds(120);
-				Database database = client.newDatabase("test");
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
 
-				RecordTypeDefinition recordTypeDefinition = RecordTypeDefinition.newBuilder("exchangeState")
-				                                                                .addMillisecondTimestampField("timestampInMillis")
-				                                                                .addByteField("status")
-				                                                                .build();
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .memTimeSeriesSize(60)
+                                                   .maximumMemoryUsageByMemTimeSeries(100)
+                                                   .cachesConcurrencyLevel(1)
+                                                   .build();
 
-				TimeSeriesDefinition daxDefinition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                             .timeUnit(TimeUnit.NANOSECONDS)
-				                                             .addRecordType(recordTypeDefinition)
-				                                             .build();
+        HorizonServer server = new HorizonServer(configuration);
 
-				TimeSeriesDefinition cacDefinition = database.newTimeSeriesDefinitionBuilder("CAC40")
-				                                             .timeUnit(TimeUnit.NANOSECONDS)
-				                                             .addRecordType(recordTypeDefinition)
-				                                             .build();
-				
-				TimeSeries daxTimeSeries = database.createTimeSeries(daxDefinition);
-				
-				RecordSet timeSeriesRecordSet = daxTimeSeries.newRecordSetBuilder()
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp)
-				                                             .setTimestampInMillis(1, timestamp)
-				                                             .setByte(2, 10)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 100)
-				                                             .setTimestampInMillis(1, timestamp + 100)
-				                                             .setByte(2, 5)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 350)
-				                                             .setTimestampInMillis(1, timestamp + 350)
-				                                             .setByte(2, 10)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 450)
-				                                             .setTimestampInMillis(1, timestamp + 450)
-				                                             .setByte(2, 6)
-				                                             .build();
-				
-				daxTimeSeries.write(timeSeriesRecordSet);
-								
-				TimeSeries cacTimeSeries = database.createTimeSeries(cacDefinition);
-				
-				timeSeriesRecordSet = cacTimeSeries.newRecordSetBuilder()
-				                                   .newRecord("exchangeState")
-				                                   .setTimestampInMillis(0, timestamp)
-				                                   .setTimestampInMillis(1, timestamp)
-				                                   .setByte(2, 10)
-				                                   .newRecord("exchangeState")
-				                                   .setTimestampInMillis(0, timestamp + 100)
-				                                   .setTimestampInMillis(1, timestamp + 100)
-				                                   .setByte(2, 5)
-				                                   .newRecord("exchangeState")
-				                                   .setTimestampInMillis(0, timestamp + 350)
-				                                   .setTimestampInMillis(1, timestamp + 350)
-				                                   .setByte(2, 10)
-				                                   .newRecord("exchangeState")
-				                                   .setTimestampInMillis(0, timestamp + 450)
-				                                   .setTimestampInMillis(1, timestamp + 450)
-				                                   .setByte(2, 6)
-				                                   .build();
-				
-				cacTimeSeries.write(timeSeriesRecordSet);
-				
-				AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-				                                               .resolve("test")
-				                                               .resolve("DAX-1384383600000.ts"));
-				
-				AssertFiles.assertFileDoesNotExists(this.testDirectory.resolve("data")
-				                                                      .resolve("test")
-				                                                      .resolve("CAC40-1384383600000.ts"));
-				
-				RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
+        try {
 
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+            server.start();
 
-				assertTrue(defaultRecordSet.next());
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
 
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(5, defaultRecordSet.getByte(2));
-				
-				assertTrue(defaultRecordSet.next());
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
 
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+                RecordTypeDefinition recordTypeDefinition = RecordTypeDefinition.newBuilder("exchangeState")
+                                                                                .addMillisecondTimestampField("timestampInMillis")
+                                                                                .addByteField("status")
+                                                                                .build();
 
-				assertTrue(defaultRecordSet.next());
+                TimeSeriesDefinition daxDefinition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                             .timeUnit(TimeUnit.NANOSECONDS)
+                                                             .addRecordType(recordTypeDefinition)
+                                                             .build();
 
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(6, defaultRecordSet.getByte(2));	
-				
-				assertFalse(defaultRecordSet.next());
-								
-				defaultRecordSet = cacTimeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
+                TimeSeriesDefinition cacDefinition = database.newTimeSeriesDefinitionBuilder("CAC40")
+                                                             .timeUnit(TimeUnit.NANOSECONDS)
+                                                             .addRecordType(recordTypeDefinition)
+                                                             .build();
 
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+                TimeSeries daxTimeSeries = database.createTimeSeries(daxDefinition);
 
-				assertTrue(defaultRecordSet.next());
+                RecordSet timeSeriesRecordSet = daxTimeSeries.newRecordSetBuilder()
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp)
+                                                             .setTimestampInMillis(1, timestamp)
+                                                             .setByte(2, 10)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 100)
+                                                             .setTimestampInMillis(1, timestamp + 100)
+                                                             .setByte(2, 5)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 350)
+                                                             .setTimestampInMillis(1, timestamp + 350)
+                                                             .setByte(2, 10)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 450)
+                                                             .setTimestampInMillis(1, timestamp + 450)
+                                                             .setByte(2, 6)
+                                                             .build();
 
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(5, defaultRecordSet.getByte(2));
-				
-				assertTrue(defaultRecordSet.next());
+                daxTimeSeries.write(timeSeriesRecordSet);
 
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+                TimeSeries cacTimeSeries = database.createTimeSeries(cacDefinition);
 
-				assertTrue(defaultRecordSet.next());
+                timeSeriesRecordSet = cacTimeSeries.newRecordSetBuilder()
+                                                   .newRecord("exchangeState")
+                                                   .setTimestampInMillis(0, timestamp)
+                                                   .setTimestampInMillis(1, timestamp)
+                                                   .setByte(2, 10)
+                                                   .newRecord("exchangeState")
+                                                   .setTimestampInMillis(0, timestamp + 100)
+                                                   .setTimestampInMillis(1, timestamp + 100)
+                                                   .setByte(2, 5)
+                                                   .newRecord("exchangeState")
+                                                   .setTimestampInMillis(0, timestamp + 350)
+                                                   .setTimestampInMillis(1, timestamp + 350)
+                                                   .setByte(2, 10)
+                                                   .newRecord("exchangeState")
+                                                   .setTimestampInMillis(0, timestamp + 450)
+                                                   .setTimestampInMillis(1, timestamp + 450)
+                                                   .setByte(2, 6)
+                                                   .build();
 
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(6, defaultRecordSet.getByte(2));	
-				
-				assertFalse(defaultRecordSet.next());
-			}
+                cacTimeSeries.write(timeSeriesRecordSet);
 
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testInsertWithFlush() throws Exception {
+                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
+                                                               .resolve("test")
+                                                               .resolve("DAX-1384383600000.ts"));
 
-		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .memTimeSeriesSize(50)
-		                                           .maximumMemoryUsageByMemTimeSeries(100)
-		                                           .cachesConcurrencyLevel(1)
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+                AssertFiles.assertFileDoesNotExists(this.testDirectory.resolve("data")
+                                                                      .resolve("test")
+                                                                      .resolve("CAC40-1384383600000.ts"));
 
-				client.setQueryTimeoutInSeconds(120);
-				Database database = client.newDatabase("test");
+                RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
 
-				RecordTypeDefinition recordTypeDefinition = RecordTypeDefinition.newBuilder("exchangeState")
-				                                                                .addMillisecondTimestampField("timestampInMillis")
-				                                                                .addByteField("status")
-				                                                                .build();
+                assertTrue(defaultRecordSet.next());
 
-				TimeSeriesDefinition daxDefinition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                             .timeUnit(TimeUnit.NANOSECONDS)
-				                                             .addRecordType(recordTypeDefinition)
-				                                             .build();
-				
-				TimeSeries daxTimeSeries = database.createTimeSeries(daxDefinition);
-				
-				RecordSet timeSeriesRecordSet = daxTimeSeries.newRecordSetBuilder()
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp)
-				                                             .setTimestampInMillis(1, timestamp)
-				                                             .setByte(2, 10)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 100)
-				                                             .setTimestampInMillis(1, timestamp + 100)
-				                                             .setByte(2, 5)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 350)
-				                                             .setTimestampInMillis(1, timestamp + 350)
-				                                             .setByte(2, 10)
-				                                             .newRecord("exchangeState")
-				                                             .setTimestampInMillis(0, timestamp + 450)
-				                                             .setTimestampInMillis(1, timestamp + 450)
-				                                             .setByte(2, 6)
-				                                             .build();
-				
-				daxTimeSeries.write(timeSeriesRecordSet);
-												
-				Thread.sleep(100);
-				
-				AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-				                                               .resolve("test")
-				                                               .resolve("DAX-1384383600000.ts"));
-				
-				RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
-				
-				assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+                assertTrue(defaultRecordSet.next());
 
-				assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(5, defaultRecordSet.getByte(2));
 
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(5, defaultRecordSet.getByte(2));
-				
-				assertTrue(defaultRecordSet.next());
+                assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
 
-				assertTrue(defaultRecordSet.next());
+                assertTrue(defaultRecordSet.next());
 
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(6, defaultRecordSet.getByte(2));	
-				
-				assertFalse(defaultRecordSet.next());
-			}
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(6, defaultRecordSet.getByte(2));
 
-		} finally {
-			
-			server.shutdown();
-		}
-	}
-	
-	@Test
-	public void testReadWithFiltering() throws Exception {
+                assertFalse(defaultRecordSet.next());
 
-		long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Configuration configuration = Configuration.newBuilder()
-		                                           .commitLogDirectory(this.testDirectory.resolve("commitLog"))
-		                                           .dataDirectory(this.testDirectory.resolve("data"))
-		                                           .build();
-		
-		HorizonServer server = new HorizonServer(configuration);
-			
-		try {
-		
-			server.start();
-			
-			try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+                defaultRecordSet = cacTimeSeries.read(timestamp, timestamp + 20000);
 
-				client.setQueryTimeoutInSeconds(120);
-				Database database = client.newDatabase("test");
+                assertTrue(defaultRecordSet.next());
 
-				RecordTypeDefinition exchangeState = RecordTypeDefinition.newBuilder("exchangeState")
-				                                                         .addMillisecondTimestampField("timestampInMillis")
-				                                                         .addByteField("status")
-				                                                         .build();
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
 
-				RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("trade")
-				                                                 .addMillisecondTimestampField("timestampInMillis")
-				                                                 .addDecimalField("price")
-				                                                 .addLongField("volume")
-				                                                 .build();
+                assertTrue(defaultRecordSet.next());
 
-				TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
-				                                          .timeUnit(TimeUnit.MILLISECONDS)
-				                                          .addRecordType(exchangeState)
-				                                          .addRecordType(trade)
-				                                          .build();
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(5, defaultRecordSet.getByte(2));
 
-				TimeSeries timeSeries = database.createTimeSeries(definition);
-				
-				RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
-				                                          .newRecord("exchangeState")
-				                                          .setTimestampInMillis(0, timestamp)
-				                                          .setTimestampInMillis(1, timestamp)
-				                                          .setByte(2, 10)
-				                                          .newRecord("trade")
-				                                          .setTimestampInMillis(0, timestamp)
-				                                          .setTimestampInMillis(1, timestamp)
-				                                          .setDecimal(2, 12, 0)
-				                                          .setLong(3, 6)
-				                                          .newRecord("exchangeState")
-				                                          .setTimestampInMillis(0, timestamp + 100)
-				                                          .setTimestampInMillis(1, timestamp + 100)
-				                                          .setByte(2, 5)
-				                                          .newRecord("exchangeState")
-				                                          .setTimestampInMillis(0, timestamp + 350)
-				                                          .setTimestampInMillis(1, timestamp + 350)
-				                                          .setByte(2, 10)
-				                                          .newRecord("trade")
-				                                          .setTimestampInMillis(0, timestamp + 360)
-				                                          .setTimestampInMillis(1, timestamp + 360)
-				                                          .setDecimal(2, 125, -1)
-				                                          .setLong(3, 4)
-				                                          .newRecord("exchangeState")
-				                                          .setTimestampInMillis(0, timestamp + 450)
-				                                          .setTimestampInMillis(1, timestamp + 450)
-				                                          .setByte(2, 6)
-				                                          .newRecord("trade")
-				                                          .setTimestampInMillis(0, timestamp + 500)
-				                                          .setTimestampInMillis(1, timestamp + 500)
-				                                          .setDecimal(2, 13, 0)
-				                                          .setLong(3, 9)
-				                                          .build();
+                assertTrue(defaultRecordSet.next());
 
-				
-				timeSeries.write(timeSeriesRecordSet);
-				
-				RecordSet defaultRecordSet = timeSeries.read(timestamp + 200, timestamp + 400);
-				
-				assertTrue(defaultRecordSet.next());
-				assertEquals(0, defaultRecordSet.getType());
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(10, defaultRecordSet.getByte(2));
-								
-				assertTrue(defaultRecordSet.next());
-				assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(0));
-				assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(1));
-				assertEquals(125, defaultRecordSet.getDecimalMantissa(2));
-				assertEquals(-1, defaultRecordSet.getDecimalExponent(2));
-				assertEquals(4, defaultRecordSet.getLong(3));
-				
-				assertFalse(defaultRecordSet.next());
-			}
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
 
-		} finally {
-			
-			server.shutdown();
-		}
-	}
+                assertTrue(defaultRecordSet.next());
+
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(6, defaultRecordSet.getByte(2));
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testInsertWithFlush() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .memTimeSeriesSize(50)
+                                                   .maximumMemoryUsageByMemTimeSeries(100)
+                                                   .cachesConcurrencyLevel(1)
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition recordTypeDefinition = RecordTypeDefinition.newBuilder("exchangeState")
+                                                                                .addMillisecondTimestampField("timestampInMillis")
+                                                                                .addByteField("status")
+                                                                                .build();
+
+                TimeSeriesDefinition daxDefinition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                             .timeUnit(TimeUnit.NANOSECONDS)
+                                                             .addRecordType(recordTypeDefinition)
+                                                             .build();
+
+                TimeSeries daxTimeSeries = database.createTimeSeries(daxDefinition);
+
+                RecordSet timeSeriesRecordSet = daxTimeSeries.newRecordSetBuilder()
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp)
+                                                             .setTimestampInMillis(1, timestamp)
+                                                             .setByte(2, 10)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 100)
+                                                             .setTimestampInMillis(1, timestamp + 100)
+                                                             .setByte(2, 5)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 350)
+                                                             .setTimestampInMillis(1, timestamp + 350)
+                                                             .setByte(2, 10)
+                                                             .newRecord("exchangeState")
+                                                             .setTimestampInMillis(0, timestamp + 450)
+                                                             .setTimestampInMillis(1, timestamp + 450)
+                                                             .setByte(2, 6)
+                                                             .build();
+
+                daxTimeSeries.write(timeSeriesRecordSet);
+
+                Thread.sleep(100);
+
+                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
+                                                               .resolve("test")
+                                                               .resolve("DAX-1384383600000.ts"));
+
+                RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
+
+                assertTrue(defaultRecordSet.next());
+
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
+
+                assertTrue(defaultRecordSet.next());
+
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 100L, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(5, defaultRecordSet.getByte(2));
+
+                assertTrue(defaultRecordSet.next());
+
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
+
+                assertTrue(defaultRecordSet.next());
+
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 450, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(6, defaultRecordSet.getByte(2));
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testReadAcrossMultiplePartitions() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp2 = TimeUtils.getTime("2013.11.15 08:16:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("Trade")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+
+                RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setDecimal(1, 125, -1)
+                                                          .setLong(2, 10)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 100)
+                                                          .setDecimal(1, 12, 0)
+                                                          .setLong(2, 5)
+                                                          .newRecord("Trade")
+                                                          .setTimestampInMillis(0, timestamp + 350)
+                                                          .setDecimal(1, 11, 0)
+                                                          .setLong(2, 10)
+                                                          .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+
+                timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp2)
+                                                .setDecimal(1, 13, 0)
+                                                .setLong(2, 5)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp2 + 150)
+                                                .setDecimal(1, 129, -1)
+                                                .setLong(2, 5)
+                                                .newRecord("Trade")
+                                                .setTimestampInMillis(0, timestamp2 + 350)
+                                                .setDecimal(1, 13, 0)
+                                                .setLong(2, 10)
+                                                .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+
+                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"),
+                                                             TimeUtils.getTime("2013.11.15 23:59:59.999"));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 100, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(120, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(110, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp2, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(13, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(0, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp2 + 150, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(129, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(5, defaultRecordSet.getLong(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp2 + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(130, defaultRecordSet.getDecimalMantissa(1));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(1));
+                assertEquals(10, defaultRecordSet.getLong(2));
+                
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testReadWithFiltering() throws Exception {
+
+        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition exchangeState = RecordTypeDefinition.newBuilder("exchangeState")
+                                                                         .addMillisecondTimestampField("timestampInMillis")
+                                                                         .addByteField("status")
+                                                                         .build();
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("trade")
+                                                                 .addMillisecondTimestampField("timestampInMillis")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(exchangeState)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+
+                RecordSet timeSeriesRecordSet = timeSeries.newRecordSetBuilder()
+                                                          .newRecord("exchangeState")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setTimestampInMillis(1, timestamp)
+                                                          .setByte(2, 10)
+                                                          .newRecord("trade")
+                                                          .setTimestampInMillis(0, timestamp)
+                                                          .setTimestampInMillis(1, timestamp)
+                                                          .setDecimal(2, 12, 0)
+                                                          .setLong(3, 6)
+                                                          .newRecord("exchangeState")
+                                                          .setTimestampInMillis(0, timestamp + 100)
+                                                          .setTimestampInMillis(1, timestamp + 100)
+                                                          .setByte(2, 5)
+                                                          .newRecord("exchangeState")
+                                                          .setTimestampInMillis(0, timestamp + 350)
+                                                          .setTimestampInMillis(1, timestamp + 350)
+                                                          .setByte(2, 10)
+                                                          .newRecord("trade")
+                                                          .setTimestampInMillis(0, timestamp + 360)
+                                                          .setTimestampInMillis(1, timestamp + 360)
+                                                          .setDecimal(2, 125, -1)
+                                                          .setLong(3, 4)
+                                                          .newRecord("exchangeState")
+                                                          .setTimestampInMillis(0, timestamp + 450)
+                                                          .setTimestampInMillis(1, timestamp + 450)
+                                                          .setByte(2, 6)
+                                                          .newRecord("trade")
+                                                          .setTimestampInMillis(0, timestamp + 500)
+                                                          .setTimestampInMillis(1, timestamp + 500)
+                                                          .setDecimal(2, 13, 0)
+                                                          .setLong(3, 9)
+                                                          .build();
+
+                timeSeries.write(timeSeriesRecordSet);
+
+                RecordSet defaultRecordSet = timeSeries.read(timestamp + 200, timestamp + 400);
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(0, defaultRecordSet.getType());
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 350, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(10, defaultRecordSet.getByte(2));
+
+                assertTrue(defaultRecordSet.next());
+                assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(0));
+                assertEquals(timestamp + 360, defaultRecordSet.getTimestampInMillis(1));
+                assertEquals(125, defaultRecordSet.getDecimalMantissa(2));
+                assertEquals(-1, defaultRecordSet.getDecimalExponent(2));
+                assertEquals(4, defaultRecordSet.getLong(3));
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
 }

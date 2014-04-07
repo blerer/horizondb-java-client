@@ -24,6 +24,7 @@ import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import static io.horizondb.io.encoding.VarInts.readByte;
@@ -43,9 +44,9 @@ final class StreamedRecordIterator implements RecordIterator {
 	private final Connection connection;
 	
 	/**
-	 * The queryPayload to be send to the server.
+	 * The queries to be send to the server.
 	 */
-	private final Msg<QueryPayload> queryPayload;
+	private final Iterator<Msg<QueryPayload>> queries;
 	
 	/**
 	 * The buffer containing the data being processed.
@@ -77,13 +78,13 @@ final class StreamedRecordIterator implements RecordIterator {
 	 * 
 	 * @param definition the time series definition
 	 * @param connection the connection to the server
-	 * @param queryPayload the queryPayload to send to the server
+	 * @param queries the queries to be send to the server
 	 */
-    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Msg<QueryPayload> queryPayload) {
+    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Iterable<Msg<QueryPayload>> queries) {
     	
     	this.binaryRecords = definition.newBinaryRecords();
     	this.connection = connection;
-    	this.queryPayload = queryPayload;
+    	this.queries = queries.iterator();
     }
 
     /**    
@@ -130,7 +131,7 @@ final class StreamedRecordIterator implements RecordIterator {
 
 		if (this.buffer == null) {
 
-			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.queryPayload);
+			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.queries.next());
 
 			this.buffer = msg.getPayload().getBuffer();
 
@@ -144,6 +145,11 @@ final class StreamedRecordIterator implements RecordIterator {
 
 		if (type == Msg.END_OF_STREAM_MARKER) {
 			
+		    if (this.queries.hasNext()) {
+		        this.buffer = null;
+		        return computeNext();
+		    }
+		    
 			this.endOfStream = true;
 			return false;
 		}

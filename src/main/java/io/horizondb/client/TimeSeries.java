@@ -23,6 +23,7 @@ import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -121,15 +122,21 @@ public final class TimeSeries {
 	 */
 	public RecordSet read(long startTimeInMillis, long endTimeInMillis) {
 
-		TimeRange range = new TimeRange(startTimeInMillis, endTimeInMillis);
-
-		Msg<QueryPayload> query = Msgs.newQueryRequest(this.databaseDefinition.getName(),
-		                                               this.seriesDefinition.getName(),
-		                                               range);
+		List<TimeRange> ranges = this.seriesDefinition.splitRange(new TimeRange(startTimeInMillis, endTimeInMillis));
+		List<Msg<QueryPayload>> queries = new ArrayList<>();
+		
+		for (TimeRange range : ranges) {
+            		      
+	        Msg<QueryPayload> query = Msgs.newQueryRequest(this.databaseDefinition.getName(),
+	                                                       this.seriesDefinition.getName(),
+	                                                       range);
+		    
+		    queries.add(query);
+        }
 
 		return new DefaultRecordSet(this.seriesDefinition, new StreamedRecordIterator(this.seriesDefinition,
 		                                                                  this.manager.getConnection(),
-		                                                                  query));
+		                                                                  queries));
 	}
 	
     /**

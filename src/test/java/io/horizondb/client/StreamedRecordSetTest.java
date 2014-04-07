@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +38,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -87,7 +86,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
 			
 			assertFalse(iterator.hasNext());
 		}
@@ -121,7 +120,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
 			
 			assertTrue(iterator.hasNext());
 			assertTrue(iterator.hasNext());
@@ -176,7 +175,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -253,7 +252,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -330,7 +329,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
 			
 			assertTrue(iterator.hasNext());
 			
