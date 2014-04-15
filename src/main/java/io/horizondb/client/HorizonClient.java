@@ -15,10 +15,10 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.protocol.GetDatabaseRequestPayload;
-import io.horizondb.model.protocol.GetDatabaseResponsePayload;
+import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.protocol.SetDatabasePayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 
 import java.io.Closeable;
@@ -68,7 +68,7 @@ public class HorizonClient implements Closeable {
 		
 		DatabaseDefinition definition = new DatabaseDefinition(name);
 
-		this.manager.send(Msgs.newCreateDatabaseRequest(definition));
+		this.manager.send(Msgs.newHqlQuery("", "CREATE DATABASE " + name + " ;"));
 		
 		return new Database(this.manager, definition);
 	}
@@ -83,9 +83,9 @@ public class HorizonClient implements Closeable {
 		
 		notEmpty(name, "the name parameter must not be empty.");
 		
-		Msg<GetDatabaseRequestPayload> request = Msgs.newGetDatabaseRequest(name);
+		Msg<HqlQueryPayload> request = Msgs.newHqlQuery("", "USE DATABASE " + name + " ;");
 
-		GetDatabaseResponsePayload payload = Msgs.getPayload(this.manager.send(request));
+		SetDatabasePayload payload = Msgs.getPayload(this.manager.send(request));
 		
 		return new Database(this.manager, payload.getDefinition());
 	}
