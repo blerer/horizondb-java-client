@@ -15,7 +15,6 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.TimeRange;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.iterators.DefaultRecordIterator;
 import io.horizondb.model.schema.TimeSeriesDefinition;
@@ -26,6 +25,7 @@ import java.util.Map.Entry;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Range;
 
 /**
  * <code>RecordSet</code> backed up by a list of records.
@@ -38,7 +38,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
     /**
      * The underlying records per time range.
      */
-    private final LinkedListMultimap<TimeRange, ? extends Record> recordsPerPartition;
+    private final LinkedListMultimap<Range<Long>, ? extends Record> recordsPerPartition;
     
     /**
      * The current position within the list.
@@ -51,7 +51,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
      * @param definition the time series definition
      * @param records the records of this <code>DefaultRecordSet</code>.
      */
-    public PartitionAwareRecordSet(TimeSeriesDefinition definition, LinkedListMultimap<TimeRange, ? extends Record> recordsPerPartition) {
+    public PartitionAwareRecordSet(TimeSeriesDefinition definition, LinkedListMultimap<Range<Long>, ? extends Record> recordsPerPartition) {
         
         super(definition, new DefaultRecordIterator(new ArrayList<Record>(recordsPerPartition.values())));
 
@@ -62,7 +62,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
      * Returns the remaining content of this <code>DefaultRecordSet</code> as a <code>List</code>.
      * @return the remaining content of this <code>DefaultRecordSet</code> as a <code>List</code>.
      */
-    public ListMultimap<TimeRange, ? extends Record> asMultimap() {
+    public ListMultimap<Range<Long>, ? extends Record> asMultimap() {
         
         if (this.index == -1) {
             return Multimaps.unmodifiableListMultimap(this.recordsPerPartition);

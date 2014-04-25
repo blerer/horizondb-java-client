@@ -68,7 +68,7 @@ public class HorizonClient implements Closeable {
 		
 		DatabaseDefinition definition = new DatabaseDefinition(name);
 
-		this.manager.send(Msgs.newHqlQuery("", "CREATE DATABASE " + name + " ;"));
+		this.manager.send(Msgs.newHqlQueryMsg("", "CREATE DATABASE " + name + " ;"));
 		
 		return new Database(this.manager, definition);
 	}
@@ -83,7 +83,7 @@ public class HorizonClient implements Closeable {
 		
 		notEmpty(name, "the name parameter must not be empty.");
 		
-		Msg<HqlQueryPayload> request = Msgs.newHqlQuery("", "USE DATABASE " + name + " ;");
+		Msg<HqlQueryPayload> request = Msgs.newHqlQueryMsg("", "USE " + name + " ;");
 
 		SetDatabasePayload payload = Msgs.getPayload(this.manager.send(request));
 		

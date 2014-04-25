@@ -18,7 +18,6 @@ import io.horizondb.io.Buffer;
 import io.horizondb.io.ByteWriter;
 import io.horizondb.io.buffers.Buffers;
 import io.horizondb.io.encoding.VarInts;
-import io.horizondb.model.TimeRange;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.records.TimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
@@ -37,6 +36,8 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.Range;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -383,7 +384,8 @@ public class StreamedRecordSetTest {
     private static Msg<QueryPayload> createRequest() {
 	    long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
 		
-		TimeRange range = new TimeRange(timestamp, timestamp + 20000);
+		Range<Long> range = Range.closedOpen(Long.valueOf(timestamp), 
+		                                     Long.valueOf(timestamp  + 20000));
 
 		QueryPayload queryPayload = new QueryPayload("test", "test", range);
 

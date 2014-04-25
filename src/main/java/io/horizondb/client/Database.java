@@ -73,7 +73,7 @@ public final class Database {
 
 	    notNull(timeSeriesDefinition, "the timeSeriesDefinition parameter must not be null.");
 	    
-		this.manager.send(Msgs.newCreateTimeSeriesRequest(this.definition.getName(), timeSeriesDefinition));
+		this.manager.send(Msgs.newHqlQueryMsg(this.definition.getName(), timeSeriesDefinition.toHql()));
 		
 		return new TimeSeries(this.manager, this.definition, timeSeriesDefinition);
 	}

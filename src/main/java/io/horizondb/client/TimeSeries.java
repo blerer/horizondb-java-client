@@ -15,7 +15,6 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.TimeRange;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
@@ -29,6 +28,7 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Range;
 
 /**
  * Represents a logical time series on a server.
@@ -99,9 +99,9 @@ public final class TimeSeries {
 
 		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
 		
-		ListMultimap<TimeRange, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
+		ListMultimap<Range<Long>, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
 		
-		for (TimeRange range : multimap.keySet()) {
+		for (Range<Long> range : multimap.keySet()) {
 		
             List<? extends Record> records = multimap.get(range);
 
@@ -122,10 +122,11 @@ public final class TimeSeries {
 	 */
 	public RecordSet read(long startTimeInMillis, long endTimeInMillis) {
 
-		List<TimeRange> ranges = this.seriesDefinition.splitRange(new TimeRange(startTimeInMillis, endTimeInMillis));
+		List<Range<Long>> ranges = this.seriesDefinition.splitRange(Range.closedOpen(Long.valueOf(startTimeInMillis), 
+		                                                                             Long.valueOf(endTimeInMillis)));
 		List<Msg<QueryPayload>> queries = new ArrayList<>();
 		
-		for (TimeRange range : ranges) {
+		for (Range<Long> range : ranges) {
             		      
 	        Msg<QueryPayload> query = Msgs.newQueryRequest(this.databaseDefinition.getName(),
 	                                                       this.seriesDefinition.getName(),
