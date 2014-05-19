@@ -13,7 +13,6 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.db.util.TimeUtils;
 import io.horizondb.io.Buffer;
 import io.horizondb.io.ByteWriter;
 import io.horizondb.io.buffers.Buffers;
@@ -21,9 +20,9 @@ import io.horizondb.io.encoding.VarInts;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.records.TimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
+import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.OpCode;
-import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.FieldType;
 import io.horizondb.model.schema.RecordTypeDefinition;
@@ -37,9 +36,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Range;
-
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -76,7 +72,7 @@ public class StreamedRecordSetTest {
 
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<QueryPayload> request = createRequest();
+		Msg<HqlQueryPayload> request = createRequest();
 		
 		Buffer heapBuffer = Buffers.allocate(100);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
@@ -87,7 +83,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
 			
 			assertFalse(iterator.hasNext());
 		}
@@ -101,7 +97,7 @@ public class StreamedRecordSetTest {
 
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<QueryPayload> request = createRequest();
+		Msg<HqlQueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -121,7 +117,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
 			
 			assertTrue(iterator.hasNext());
 			assertTrue(iterator.hasNext());
@@ -144,7 +140,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<QueryPayload> request = createRequest();
+		Msg<HqlQueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -176,7 +172,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -214,7 +210,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<QueryPayload> request = createRequest();
+		Msg<HqlQueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -253,7 +249,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -291,7 +287,7 @@ public class StreamedRecordSetTest {
 		
 		Connection connection = EasyMock.createMock(Connection.class);
 		
-		Msg<QueryPayload> request = createRequest();
+		Msg<HqlQueryPayload> request = createRequest();
 		
 		TimeSeriesRecord first = new TimeSeriesRecord(0,
 		                                              TimeUnit.NANOSECONDS,
@@ -330,7 +326,7 @@ public class StreamedRecordSetTest {
 		
 		EasyMock.replay(connection);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, singletonList(request))) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -381,15 +377,11 @@ public class StreamedRecordSetTest {
 	 * 
 	 * @return the request message.
 	 */
-    private static Msg<QueryPayload> createRequest() {
-	    long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-		
-		Range<Long> range = Range.closedOpen(Long.valueOf(timestamp), 
-		                                     Long.valueOf(timestamp  + 20000));
+    private static Msg<HqlQueryPayload> createRequest() {
 
-		QueryPayload queryPayload = new QueryPayload("test", "test", range);
+        HqlQueryPayload queryPayload = new HqlQueryPayload("test", "SELECT * FROM test WHERE timestamp >= '2013-11-14 11:46:00' AND timestamp < '2013-11-14 11:46:20'");
 
-		Msg<QueryPayload> request = Msg.newRequestMsg(OpCode.QUERY, queryPayload);
+		Msg<HqlQueryPayload> request = Msg.newRequestMsg(OpCode.HQL_QUERY, queryPayload);
 	    return request;
     }
 

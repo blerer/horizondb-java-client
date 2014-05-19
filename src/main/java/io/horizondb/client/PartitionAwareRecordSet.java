@@ -15,6 +15,7 @@
  */
 package io.horizondb.client;
 
+import io.horizondb.model.core.Field;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.iterators.DefaultRecordIterator;
 import io.horizondb.model.schema.TimeSeriesDefinition;
@@ -38,7 +39,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
     /**
      * The underlying records per time range.
      */
-    private final LinkedListMultimap<Range<Long>, ? extends Record> recordsPerPartition;
+    private final LinkedListMultimap<Range<Field>, ? extends Record> recordsPerPartition;
     
     /**
      * The current position within the list.
@@ -51,7 +52,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
      * @param definition the time series definition
      * @param records the records of this <code>DefaultRecordSet</code>.
      */
-    public PartitionAwareRecordSet(TimeSeriesDefinition definition, LinkedListMultimap<Range<Long>, ? extends Record> recordsPerPartition) {
+    public PartitionAwareRecordSet(TimeSeriesDefinition definition, LinkedListMultimap<Range<Field>, ? extends Record> recordsPerPartition) {
         
         super(definition, new DefaultRecordIterator(new ArrayList<Record>(recordsPerPartition.values())));
 
@@ -62,7 +63,7 @@ final class PartitionAwareRecordSet extends DefaultRecordSet {
      * Returns the remaining content of this <code>DefaultRecordSet</code> as a <code>List</code>.
      * @return the remaining content of this <code>DefaultRecordSet</code> as a <code>List</code>.
      */
-    public ListMultimap<Range<Long>, ? extends Record> asMultimap() {
+    public ListMultimap<Range<Field>, ? extends Record> asMultimap() {
         
         if (this.index == -1) {
             return Multimaps.unmodifiableListMultimap(this.recordsPerPartition);

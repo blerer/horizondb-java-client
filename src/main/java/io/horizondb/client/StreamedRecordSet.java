@@ -19,12 +19,11 @@ import io.horizondb.io.ReadableBuffer;
 import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
+import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
-import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import static io.horizondb.io.encoding.VarInts.readByte;
@@ -44,9 +43,9 @@ final class StreamedRecordIterator implements RecordIterator {
 	private final Connection connection;
 	
 	/**
-	 * The queries to be send to the server.
+	 * The query to be send to the server.
 	 */
-	private final Iterator<Msg<QueryPayload>> queries;
+	private final Msg<HqlQueryPayload> query;
 	
 	/**
 	 * The buffer containing the data being processed.
@@ -80,11 +79,11 @@ final class StreamedRecordIterator implements RecordIterator {
 	 * @param connection the connection to the server
 	 * @param queries the queries to be send to the server
 	 */
-    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Iterable<Msg<QueryPayload>> queries) {
+    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Msg<HqlQueryPayload> query) {
     	
     	this.binaryRecords = definition.newBinaryRecords();
     	this.connection = connection;
-    	this.queries = queries.iterator();
+    	this.query = query;
     }
 
     /**    
@@ -131,7 +130,7 @@ final class StreamedRecordIterator implements RecordIterator {
 
 		if (this.buffer == null) {
 
-			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.queries.next());
+			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.query);
 
 			this.buffer = msg.getPayload().getBuffer();
 
@@ -144,11 +143,6 @@ final class StreamedRecordIterator implements RecordIterator {
 		int type = readByte(this.buffer);
 
 		if (type == Msg.END_OF_STREAM_MARKER) {
-			
-		    if (this.queries.hasNext()) {
-		        this.buffer = null;
-		        return computeNext();
-		    }
 		    
 			this.endOfStream = true;
 			return false;

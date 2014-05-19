@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +13,14 @@
  */
 package io.horizondb.client;
 
+import io.horizondb.model.core.Field;
 import io.horizondb.model.core.Record;
+import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
-import io.horizondb.model.protocol.QueryPayload;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -99,9 +97,9 @@ public final class TimeSeries {
 
 		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
 		
-		ListMultimap<Range<Long>, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
+		ListMultimap<Range<Field>, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
 		
-		for (Range<Long> range : multimap.keySet()) {
+		for (Range<Field> range : multimap.keySet()) {
 		
             List<? extends Record> records = multimap.get(range);
 
@@ -121,23 +119,15 @@ public final class TimeSeries {
 	 * the specified time range
 	 */
 	public RecordSet read(long startTimeInMillis, long endTimeInMillis) {
-
-		List<Range<Long>> ranges = this.seriesDefinition.splitRange(Range.closedOpen(Long.valueOf(startTimeInMillis), 
-		                                                                             Long.valueOf(endTimeInMillis)));
-		List<Msg<QueryPayload>> queries = new ArrayList<>();
-		
-		for (Range<Long> range : ranges) {
             		      
-	        Msg<QueryPayload> query = Msgs.newQueryRequest(this.databaseDefinition.getName(),
-	                                                       this.seriesDefinition.getName(),
-	                                                       range);
+        Msg<HqlQueryPayload> query = Msgs.newHqlQueryMsg(this.databaseDefinition.getName(), "SELECT * FROM "
+                + this.seriesDefinition.getName() + " WHERE timestamp >= " + startTimeInMillis + "ms AND timestamp < "
+                + endTimeInMillis + "ms ;");
 		    
-		    queries.add(query);
-        }
 
 		return new DefaultRecordSet(this.seriesDefinition, new StreamedRecordIterator(this.seriesDefinition,
 		                                                                  this.manager.getConnection(),
-		                                                                  queries));
+		                                                                  query));
 	}
 	
     /**

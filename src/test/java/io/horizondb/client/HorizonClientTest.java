@@ -17,8 +17,8 @@ package io.horizondb.client;
 
 import io.horizondb.db.Configuration;
 import io.horizondb.db.HorizonServer;
-import io.horizondb.db.util.TimeUtils;
 import io.horizondb.io.files.FileUtils;
+import io.horizondb.model.core.util.TimeUtils;
 import io.horizondb.model.schema.RecordTypeDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 import io.horizondb.test.AssertFiles;
@@ -232,7 +232,7 @@ public class HorizonClientTest {
     @Test
     public void testInsertIntoTimeSeries() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -303,7 +303,7 @@ public class HorizonClientTest {
     @Test
     public void testInsertIntoTimeSeriesWithReplay() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -423,7 +423,7 @@ public class HorizonClientTest {
     @Test
     public void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -542,8 +542,8 @@ public class HorizonClientTest {
 
                 TimeSeries timeSeries = database.getTimeSeries("DAX");
 
-                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"),
-                                                             TimeUtils.getTime("2013.11.14 23:59:59.999"));
+                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.parseDateTime("2013-11-14 00:00:00.000"),
+                                                             TimeUtils.parseDateTime("2013-11-14 23:59:59.999"));
 
                 assertTrue(defaultRecordSet.next());
                 assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
@@ -575,7 +575,7 @@ public class HorizonClientTest {
     @Test
     public void testInsertWithForceFlushFromCache() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -731,7 +731,7 @@ public class HorizonClientTest {
     @Test
     public void testInsertWithFlush() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -829,8 +829,8 @@ public class HorizonClientTest {
     @Test
     public void testReadAcrossMultiplePartitions() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
-        long timestamp2 = TimeUtils.getTime("2013.11.15 08:16:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+        long timestamp2 = TimeUtils.parseDateTime("2013-11-15 08:16:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -894,8 +894,8 @@ public class HorizonClientTest {
 
                 timeSeries.write(timeSeriesRecordSet);
 
-                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.getTime("2013.11.14 00:00:00.000"),
-                                                             TimeUtils.getTime("2013.11.15 23:59:59.999"));
+                RecordSet defaultRecordSet = timeSeries.read(TimeUtils.parseDateTime("2013-11-14 00:00:00.000"),
+                                                             TimeUtils.parseDateTime("2013-11-15 23:59:59.999"));
 
                 assertTrue(defaultRecordSet.next());
                 assertEquals(timestamp, defaultRecordSet.getTimestampInMillis(0));
@@ -943,9 +943,60 @@ public class HorizonClientTest {
     }
 
     @Test
+    public void testReadWithNoData() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonClient client = new HorizonClient(configuration.getPort())) {
+
+                client.setQueryTimeoutInSeconds(120);
+                Database database = client.newDatabase("test");
+
+                RecordTypeDefinition exchangeState = RecordTypeDefinition.newBuilder("exchangeState")
+                                                                         .addMillisecondTimestampField("timestampInMillis")
+                                                                         .addByteField("status")
+                                                                         .build();
+
+                RecordTypeDefinition trade = RecordTypeDefinition.newBuilder("trade")
+                                                                 .addMillisecondTimestampField("timestampInMillis")
+                                                                 .addDecimalField("price")
+                                                                 .addLongField("volume")
+                                                                 .build();
+
+                TimeSeriesDefinition definition = database.newTimeSeriesDefinitionBuilder("DAX")
+                                                          .timeUnit(TimeUnit.MILLISECONDS)
+                                                          .addRecordType(exchangeState)
+                                                          .addRecordType(trade)
+                                                          .build();
+
+                TimeSeries timeSeries = database.createTimeSeries(definition);
+
+                RecordSet defaultRecordSet = timeSeries.read(timestamp + 200, timestamp + 400);
+
+                assertFalse(defaultRecordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
     public void testReadWithFiltering() throws Exception {
 
-        long timestamp = TimeUtils.getTime("2013.11.14 11:46:00.000");
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
