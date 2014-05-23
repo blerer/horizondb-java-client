@@ -21,6 +21,8 @@ import io.horizondb.model.core.records.TimeSeriesRecord;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.lang.Validate.isTrue;
 
@@ -326,6 +328,27 @@ class DefaultRecordSet implements RecordSet {
 		}
 	}
 
+	/**
+	 * Returns a <code>List</code> containing all the remaining records of this <code>RecordSet</code>.
+	 * 
+	 * @return a <code>List</code> containing all the remaining records of this <code>RecordSet</code>.
+	 */
+	public List<Record> toList() {
+	    
+	    try {
+            
+	        List<Record> records = new ArrayList<>();
+            while (this.iterator.hasNext()) {
+                records.add(this.iterator.next().newInstance());
+            }
+            return records;
+            
+        } catch (IOException e) {
+            
+            throw new HorizonDBException("", e);
+        }
+	}
+	
     /**
      * Notification that next has been called. 
      */

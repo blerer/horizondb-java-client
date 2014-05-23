@@ -16,7 +16,8 @@
 package io.horizondb.client;
 
 import io.horizondb.client.RecordSet.Builder;
-import io.horizondb.model.core.RecordListMultimapBuilder;
+import io.horizondb.model.core.RecordListBuilder;
+import io.horizondb.model.core.iterators.DefaultRecordIterator;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 /**
@@ -28,9 +29,9 @@ import io.horizondb.model.schema.TimeSeriesDefinition;
 final class RecordSetBuilder implements RecordSet.Builder {
 
     /**
-     * The Multimap build.
+     * The List build.
      */
-    private final RecordListMultimapBuilder builder;
+    private final RecordListBuilder builder;
 
     /**
      * The time series definition.
@@ -46,7 +47,7 @@ final class RecordSetBuilder implements RecordSet.Builder {
     public RecordSetBuilder(TimeSeriesDefinition definition) {
         
         this.definition = definition;
-        this.builder = new RecordListMultimapBuilder(definition);
+        this.builder = new RecordListBuilder(definition);
     }
 
     /**
@@ -235,6 +236,6 @@ final class RecordSetBuilder implements RecordSet.Builder {
      */
     @Override
     public final RecordSet build() {
-        return new PartitionAwareRecordSet(this.definition, this.builder.buildMultimap());
+        return new DefaultRecordSet(this.definition, new DefaultRecordIterator(this.builder.build()));
     }
 }

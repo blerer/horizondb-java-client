@@ -13,20 +13,13 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.Field;
-import io.horizondb.model.core.Record;
 import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
-import java.util.List;
-
 import org.apache.commons.lang.Validate;
-
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Range;
 
 /**
  * Represents a logical time series on a server.
@@ -88,26 +81,14 @@ public final class TimeSeries {
 	 */
 	public void write(RecordSet recordSet) {
 
-	    Validate.isTrue(recordSet instanceof PartitionAwareRecordSet, 
-	                    "RecordSet of type " + recordSet.getClass() + " are not supported.");
-	    
 		Validate.isTrue(isAssociatedToThisTimeSeries(recordSet), 
 		                "the recordSet is not associated to " 
 		                		+ this.databaseDefinition.getName() + "." + this.seriesDefinition.getName());
+		
 
-		PartitionAwareRecordSet partitionAwareRecordSet = (PartitionAwareRecordSet) recordSet; 
-		
-		ListMultimap<Range<Field>, ? extends Record> multimap = partitionAwareRecordSet.asMultimap();
-		
-		for (Range<Field> range : multimap.keySet()) {
-		
-            List<? extends Record> records = multimap.get(range);
-
-            this.manager.send(Msgs.newBulkWriteRequest(this.databaseDefinition.getName(),
-                                                       this.seriesDefinition.getName(),
-                                                       range,
-                                                       records));
-		}
+        this.manager.send(Msgs.newBulkWriteRequest(this.databaseDefinition.getName(),
+                                                   this.seriesDefinition.getName(),
+                                                   ((DefaultRecordSet) recordSet).toList()));
 	}
 	
 	/**

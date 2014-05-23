@@ -787,9 +787,9 @@ public class HorizonClientTest {
 
                 Thread.sleep(100);
 
-                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-                                                               .resolve("test")
-                                                               .resolve("DAX-1384383600000.ts"));
+//                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
+//                                                               .resolve("test")
+//                                                               .resolve("DAX-1384383600000.ts"));
 
                 RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
 
