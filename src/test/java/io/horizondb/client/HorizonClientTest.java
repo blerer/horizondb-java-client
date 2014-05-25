@@ -748,9 +748,9 @@ public class HorizonClientTest {
             server.start();
 
             try (HorizonClient client = new HorizonClient(configuration.getPort())) {
-
+                
                 client.setQueryTimeoutInSeconds(120);
-                Database database = client.newDatabase("test");
+                Database database = client.newDatabase("test");               
 
                 RecordTypeDefinition recordTypeDefinition = RecordTypeDefinition.newBuilder("exchangeState")
                                                                                 .addMillisecondTimestampField("timestampInMillis")
@@ -782,14 +782,14 @@ public class HorizonClientTest {
                                                              .setTimestampInMillis(1, timestamp + 450)
                                                              .setByte(2, 6)
                                                              .build();
-
+                
                 daxTimeSeries.write(timeSeriesRecordSet);
 
                 Thread.sleep(100);
-
-//                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-//                                                               .resolve("test")
-//                                                               .resolve("DAX-1384383600000.ts"));
+                
+                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
+                                                               .resolve("test")
+                                                               .resolve("DAX-1384383600000.ts"));
 
                 RecordSet defaultRecordSet = daxTimeSeries.read(timestamp, timestamp + 20000);
 

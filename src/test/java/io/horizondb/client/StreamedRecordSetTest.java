@@ -77,7 +77,7 @@ public class StreamedRecordSetTest {
 		Buffer heapBuffer = Buffers.allocate(100);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -111,7 +111,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, first);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -166,7 +166,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, third);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		connection.close();
 		
@@ -234,7 +234,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, first);
 		writeRecord(heapBuffer, second);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(20);
@@ -242,7 +242,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, third);
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
-		response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.awaitResponse()).andReturn(response);
 		
 		connection.close();
@@ -312,14 +312,14 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, second);
 		writeRecord(heapBuffer, third);
 		
-		Msg response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(27);
 		
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
-		response = Msg.newResponseMsg(request.getHeader(), new DataChunkPayload(heapBuffer));
+		response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
 		EasyMock.expect(connection.awaitResponse()).andReturn(response);
 		
 		connection.close();
