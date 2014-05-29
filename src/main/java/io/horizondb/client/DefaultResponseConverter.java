@@ -13,28 +13,27 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.core.RecordIterator;
+import io.horizondb.model.protocol.Msg;
 
 /**
- * The definition of the data contained within the record set.
+ * The default response converter.
  * 
  * @author Benjamin
+ *
  */
-public interface RecordSetDefinition {
-    
-    /**
-     * Returns the index of specified field.
-     * 
-     * @param type the index of the record type
-     * @param name the field name
-     * @return the index of specified field.
-     */
-    int getFieldIndex(int type, String name);
+public class DefaultResponseConverter implements ResponseConverter {
 
     /**
-     * Returns records instances corresponding to this <code>RecordSet</code> records.
-     * 
-     * @return records instances corresponding to this <code>RecordSet</code> records.
+     * An empty record set.
      */
-    TimeSeriesRecord[] newRecords();
+    private static final RecordSet EMPTY_RECORD_SET = new DefaultRecordSet(new EmptyRecordSetDefinition(), RecordIterator.EMPTY_ITERATOR);
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RecordSet convert(Msg<?> response, MsgChannel channel) {
+        return EMPTY_RECORD_SET;
+    }
 }

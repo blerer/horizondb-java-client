@@ -19,7 +19,6 @@ import io.horizondb.io.ReadableBuffer;
 import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
-import io.horizondb.model.protocol.HqlQueryPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
@@ -40,12 +39,7 @@ final class StreamedRecordIterator implements RecordIterator {
 	/**
 	 * The connection to the server.
 	 */
-	private final Connection connection;
-	
-	/**
-	 * The query to be send to the server.
-	 */
-	private final Msg<HqlQueryPayload> query;
+	private final MsgChannel channel;
 	
 	/**
 	 * The buffer containing the data being processed.
@@ -79,11 +73,10 @@ final class StreamedRecordIterator implements RecordIterator {
 	 * @param connection the connection to the server
 	 * @param queries the queries to be send to the server
 	 */
-    public StreamedRecordIterator(TimeSeriesDefinition definition, Connection connection, Msg<HqlQueryPayload> query) {
+    public StreamedRecordIterator(TimeSeriesDefinition definition, MsgChannel channel) {
     	
     	this.binaryRecords = definition.newBinaryRecords();
-    	this.connection = connection;
-    	this.query = query;
+    	this.channel = channel;
     }
 
     /**    
@@ -122,21 +115,14 @@ final class StreamedRecordIterator implements RecordIterator {
 	 */
     @Override
     public void close() {
-    	
-    	this.connection.close();
+
     }	
 
 	private boolean computeNext() throws IOException {
 
-		if (this.buffer == null) {
+	    if (this.buffer == null || !this.buffer.isReadable()) {
 
-			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.sendRequestAndAwaitResponse(this.query);
-
-			this.buffer = msg.getPayload().getBuffer();
-
-		} else if (!this.buffer.isReadable()) {
-
-			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.connection.awaitResponse();
+			Msg<DataChunkPayload> msg = (Msg<DataChunkPayload>) this.channel.awaitResponse();
 			this.buffer = msg.getPayload().getBuffer();
 		}
 

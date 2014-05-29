@@ -13,28 +13,21 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.protocol.Msg;
 
 /**
- * The definition of the data contained within the record set.
+ * Converts a response into a RecordSet. 
  * 
  * @author Benjamin
  */
-public interface RecordSetDefinition {
-    
-    /**
-     * Returns the index of specified field.
-     * 
-     * @param type the index of the record type
-     * @param name the field name
-     * @return the index of specified field.
-     */
-    int getFieldIndex(int type, String name);
+interface ResponseConverter {
 
     /**
-     * Returns records instances corresponding to this <code>RecordSet</code> records.
+     * Converts the specified message into a <code>RecordSet</code>.
      * 
-     * @return records instances corresponding to this <code>RecordSet</code> records.
+     * @param response the response to convert
+     * @param channel the DefaultMsgChannel
+     * @return the <code>RecordSet</code> corresponding to the response
      */
-    TimeSeriesRecord[] newRecords();
+    RecordSet convert(Msg<?> response, MsgChannel channel);
 }

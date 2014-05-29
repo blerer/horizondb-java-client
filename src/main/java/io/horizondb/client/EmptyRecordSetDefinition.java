@@ -13,28 +13,34 @@
  */
 package io.horizondb.client;
 
+import java.util.NoSuchElementException;
+
 import io.horizondb.model.core.records.TimeSeriesRecord;
 
 /**
- * The definition of the data contained within the record set.
- * 
  * @author Benjamin
+ *
  */
-public interface RecordSetDefinition {
-    
-    /**
-     * Returns the index of specified field.
-     * 
-     * @param type the index of the record type
-     * @param name the field name
-     * @return the index of specified field.
-     */
-    int getFieldIndex(int type, String name);
+final class EmptyRecordSetDefinition implements RecordSetDefinition {
 
     /**
-     * Returns records instances corresponding to this <code>RecordSet</code> records.
-     * 
-     * @return records instances corresponding to this <code>RecordSet</code> records.
+     * An empty time series array.
      */
-    TimeSeriesRecord[] newRecords();
+    private static final TimeSeriesRecord[] EMPTY_RECORDS = new TimeSeriesRecord[0];
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getFieldIndex(int type, String name) {
+        throw new NoSuchElementException("No record has been definied with index " + type);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TimeSeriesRecord[] newRecords() {
+        return EMPTY_RECORDS;
+    }
 }

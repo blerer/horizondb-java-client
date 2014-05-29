@@ -66,11 +66,11 @@ public class StreamedRecordSetTest {
 		this.definition = null;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked"})
     @Test
 	public void testNextRecordWithEmptyStream() throws IOException {
 
-		Connection connection = EasyMock.createMock(Connection.class);
+		MsgChannel channel = EasyMock.createMock(MsgChannel.class);
 		
 		Msg<HqlQueryPayload> request = createRequest();
 		
@@ -78,24 +78,23 @@ public class StreamedRecordSetTest {
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
 		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
-		connection.close();
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
-		EasyMock.replay(connection);
+		EasyMock.replay(channel);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, channel)) {
 			
 			assertFalse(iterator.hasNext());
 		}
 		
-		EasyMock.verify(connection);
+		EasyMock.verify(channel);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked"})
     @Test
 	public void testNextRecordWithOneRecord() throws IOException {
 
-		Connection connection = EasyMock.createMock(Connection.class);
+		MsgChannel channel = EasyMock.createMock(MsgChannel.class);
 		
 		Msg<HqlQueryPayload> request = createRequest();
 		
@@ -112,12 +111,11 @@ public class StreamedRecordSetTest {
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
 		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
-		connection.close();
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
-		EasyMock.replay(connection);
+		EasyMock.replay(channel);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, channel)) {
 			
 			assertTrue(iterator.hasNext());
 			assertTrue(iterator.hasNext());
@@ -131,14 +129,14 @@ public class StreamedRecordSetTest {
 			assertFalse(iterator.hasNext());
 		}
 		
-		EasyMock.verify(connection);
+		EasyMock.verify(channel);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked"})
     @Test
 	public void testStreamWithTreeRecords() throws Exception {
 		
-		Connection connection = EasyMock.createMock(Connection.class);
+	    MsgChannel channel = EasyMock.createMock(MsgChannel.class);
 		
 		Msg<HqlQueryPayload> request = createRequest();
 		
@@ -167,12 +165,11 @@ public class StreamedRecordSetTest {
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 		
 		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
-		connection.close();
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
-		EasyMock.replay(connection);
+		EasyMock.replay(channel);
 		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, channel)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -201,14 +198,14 @@ public class StreamedRecordSetTest {
 			assertFalse(iterator.hasNext());
 		}
 		
-		EasyMock.verify(connection);
+		EasyMock.verify(channel);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked"})
     @Test
 	public void testStreamWithTwoChunk() throws Exception {
 		
-		Connection connection = EasyMock.createMock(Connection.class);
+	    MsgChannel channel = EasyMock.createMock(MsgChannel.class);
 		
 		Msg<HqlQueryPayload> request = createRequest();
 		
@@ -235,7 +232,7 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, second);
 		
 		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(20);
 		
@@ -243,13 +240,11 @@ public class StreamedRecordSetTest {
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
 		response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.awaitResponse()).andReturn(response);
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
-		connection.close();
+		EasyMock.replay(channel);
 		
-		EasyMock.replay(connection);
-		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, channel)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -278,14 +273,14 @@ public class StreamedRecordSetTest {
 			assertFalse(iterator.hasNext());
 		}
 		
-		EasyMock.verify(connection);
+		EasyMock.verify(channel);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked"})
     @Test
 	public void testStreamWithOnlyEndOfStreamInSecondChunk() throws Exception {
 		
-		Connection connection = EasyMock.createMock(Connection.class);
+	    MsgChannel channel = EasyMock.createMock(MsgChannel.class);
 		
 		Msg<HqlQueryPayload> request = createRequest();
 		
@@ -313,20 +308,18 @@ public class StreamedRecordSetTest {
 		writeRecord(heapBuffer, third);
 		
 		Msg response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.sendRequestAndAwaitResponse(request)).andReturn(response);
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
 		heapBuffer = Buffers.allocate(27);
 		
 		heapBuffer.writeByte(Msg.END_OF_STREAM_MARKER);
 
 		response = Msg.newResponseMsg(request.getHeader(), OpCode.DATA_CHUNK, new DataChunkPayload(heapBuffer));
-		EasyMock.expect(connection.awaitResponse()).andReturn(response);
+		EasyMock.expect(channel.awaitResponse()).andReturn(response);
 		
-		connection.close();
+		EasyMock.replay(channel);
 		
-		EasyMock.replay(connection);
-		
-		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, connection, request)) {
+		try (StreamedRecordIterator iterator = new StreamedRecordIterator(this.definition, channel)) {
 			
 			assertTrue(iterator.hasNext());
 			
@@ -355,7 +348,7 @@ public class StreamedRecordSetTest {
 			assertFalse(iterator.hasNext());
 		}
 		
-		EasyMock.verify(connection);
+		EasyMock.verify(channel);
 	}
 	
 	/**

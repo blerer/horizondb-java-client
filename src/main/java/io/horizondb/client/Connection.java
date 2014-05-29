@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,38 +13,27 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.protocol.Msg;
+import java.io.Closeable;
 
 /**
+ * A connection to the <code>HorizonDB</code> server.
+ * 
  * @author Benjamin
- *
  */
-interface Connection {
+public interface Connection extends Closeable {
 
-	/**
-	 * Sends the specified request to the server and await for its response. 
-	 * 
-	 * @param request the request to be send to the server.
-	 * @return the server response to the specified request.
-	 */
-	Msg<?> sendRequestAndAwaitResponse(Msg<?> request);
-
-	/**
-	 * Sends the specified request to the server 
-	 * @param request the request to send
-	 */
-	void sendRequest(Msg<?> request);
-
-	/**
-	 * Awaits for the next message from the server.
-	 * 
-	 * @return the next message from the server.
-	 */
-	Msg<?> awaitResponse();
-
-	/**
-	 * {@inheritDoc}
-	 */
-	void close();
-
+    /**
+     * Returns the name of the database used by this connection.
+     * 
+     * @return the name of the database used by this connection.
+     */
+    String getDatabase();
+    
+    /**
+     * Executes the specified HQL query.
+     * 
+     * @param query the HQL query to be executed
+     * @return the result returned by the server.
+     */
+    RecordSet execute(String query);
 }

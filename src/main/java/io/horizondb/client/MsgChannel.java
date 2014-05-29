@@ -13,28 +13,31 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.records.TimeSeriesRecord;
+import java.io.Closeable;
+
+import io.horizondb.model.protocol.Msg;
 
 /**
- * The definition of the data contained within the record set.
- * 
  * @author Benjamin
+ *
  */
-public interface RecordSetDefinition {
-    
-    /**
-     * Returns the index of specified field.
-     * 
-     * @param type the index of the record type
-     * @param name the field name
-     * @return the index of specified field.
-     */
-    int getFieldIndex(int type, String name);
+interface MsgChannel extends Closeable {
 
     /**
-     * Returns records instances corresponding to this <code>RecordSet</code> records.
-     * 
-     * @return records instances corresponding to this <code>RecordSet</code> records.
+     * Send the specified request to the server.
+     * @param request the request sent to the server.
      */
-    TimeSeriesRecord[] newRecords();
+    void sendRequest(Msg<?> request);
+
+    /**
+     * Await for a response from the server.
+     * @return the message received from the server
+     */
+    Msg<?> awaitResponse();
+
+    /**
+     * Await for the specified a amount of time for a response from the server.
+     * @return the message received from the server
+     */
+    Msg<?> awaitResponse(int timeoutInSeconds);
 }

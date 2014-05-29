@@ -13,28 +13,27 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.records.TimeSeriesRecord;
+import io.horizondb.model.protocol.DataHeaderPayload;
+import io.horizondb.model.protocol.Msg;
+import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.schema.TimeSeriesDefinition;
 
 /**
- * The definition of the data contained within the record set.
- * 
  * @author Benjamin
+ *
  */
-public interface RecordSetDefinition {
-    
-    /**
-     * Returns the index of specified field.
-     * 
-     * @param type the index of the record type
-     * @param name the field name
-     * @return the index of specified field.
-     */
-    int getFieldIndex(int type, String name);
+public class DataChunkResponseConverter implements ResponseConverter {
 
     /**
-     * Returns records instances corresponding to this <code>RecordSet</code> records.
-     * 
-     * @return records instances corresponding to this <code>RecordSet</code> records.
+     * {@inheritDoc}
      */
-    TimeSeriesRecord[] newRecords();
+    @Override
+    public RecordSet convert(Msg<?> response, MsgChannel channel) {
+        
+        DataHeaderPayload header = Msgs.getPayload(response);
+        TimeSeriesDefinition definition = header.getDefinition();
+        
+        return new DefaultRecordSet(definition, new StreamedRecordIterator(definition, channel));
+    }
+
 }

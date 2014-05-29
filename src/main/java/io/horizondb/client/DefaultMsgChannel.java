@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,20 +18,16 @@ import io.horizondb.model.protocol.Msg;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 
-import java.io.Closeable;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Handle the sending and retrieval of messages.
+ * 
  * @author Benjamin
  *
  */
- class SimpleConnection implements Closeable, Connection {
-
-	 /**
-	  * The client configuration.
-	  */
-	 private final ClientConfiguration configuration;
+ class DefaultMsgChannel implements MsgChannel {
 	 
 	 /**
 	  * The channel.
@@ -45,31 +39,26 @@ import java.util.concurrent.TimeUnit;
 	  */
 	 private final BlockingQueue<Msg<?>> queue;
 	 
+	 /**
+	  * The query timeout in second.
+	  */
+	 private final int queryTimeoutInSecond;
+	 
 	/**
 	 * @param channel 
 	 * 
 	 */
-	public SimpleConnection(ClientConfiguration configuration, Channel channel) {
+	public DefaultMsgChannel(Channel channel, int queryTimeoutInSecond) {
 		
-		this.configuration = configuration;
 		this.channel = channel;
+		this.queryTimeoutInSecond = queryTimeoutInSecond;
 		this.queue = ((ClientHandler) this.channel.pipeline().last()).getQueue();
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-    public Msg<?> sendRequestAndAwaitResponse(Msg<?> request) {
-		
-		sendRequest(request);
-		return awaitResponse();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
+     * {@inheritDoc}
+     */
+    @Override
     public void sendRequest(Msg<?> request) {
 	    
     	this.queue.clear();
@@ -83,19 +72,28 @@ import java.util.concurrent.TimeUnit;
 		}
     }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Msg<?> awaitResponse() {
+        
+        return awaitResponse(this.queryTimeoutInSecond);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Msg<?> awaitResponse(int timeoutInSeconds) {
 	    try {
 	        
-			Msg<?> response = this.queue.poll(this.configuration.getQueryTimeoutInSeconds(), TimeUnit.SECONDS);
+			Msg<?> response = this.queue.poll(timeoutInSeconds, TimeUnit.SECONDS);
 			
 			if (response == null) {
 				
 				throw new QueryTimeoutException("No response has been received for more than " 
-						+ this.configuration.getQueryTimeoutInSeconds() + " seconds.");
+						+ timeoutInSeconds + " seconds.");
 			}
 			
 			if (!response.getHeader().isSuccess()) {
@@ -113,8 +111,8 @@ import java.util.concurrent.TimeUnit;
     }
 	
 	/**
-	 * {@inheritDoc}
-	 */
+     * {@inheritDoc}
+     */
     @Override
     public void close() {
     	

@@ -15,8 +15,6 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.io.serialization.Serializable;
-import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.MsgHeader;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -39,6 +37,8 @@ class ConnectionManager implements Closeable {
 
 	private final ClientConfiguration configuration;
 
+	private final ResponseConverter converter = new ResponseConverterDispatcher();
+	
 	private Bootstrap bootstrap;
 	
 	/**
@@ -73,33 +73,20 @@ class ConnectionManager implements Closeable {
 		                                });
 	}	
 	
-	public SimpleConnection getConnection() {
+	public Connection getSession() {
 		
 		return openConnection(this.configuration.getHostAddress());
 	}
 	
-	private SimpleConnection openConnection(InetSocketAddress address) {
+	private Connection openConnection(InetSocketAddress address) {
 
 		Channel channel = this.bootstrap.clone()
 		                                .connect(address)
 		                                .syncUninterruptibly()
 		                                .channel();
 
-		return new SimpleConnection(this.configuration, channel);
+		return new DefaultConnection(this.configuration, channel, this.converter);
 	}
-
-	/**
-	 * Sends the specified message.
-	 * 
-	 * @param msg the message to send.
-	 * @return the response returned by the server.
-	 */
-    public <T extends Serializable> Msg<T> send(Msg<?> msg) {
-	    
-    	try (SimpleConnection simpleConnection = getConnection()) {
-			return (Msg<T>) simpleConnection.sendRequestAndAwaitResponse(msg);
-		}
-    }
 	
 	/**
 	 * {@inheritDoc}
