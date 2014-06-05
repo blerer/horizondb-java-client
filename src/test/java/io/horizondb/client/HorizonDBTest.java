@@ -482,7 +482,7 @@ public class HorizonDBTest {
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
                                                    .dataDirectory(this.testDirectory.resolve("data"))
-                                                   .memTimeSeriesSize(60)
+                                                   .memTimeSeriesSize(70)
                                                    .maximumMemoryUsageByMemTimeSeries(100)
                                                    .cachesConcurrencyLevel(1)
                                                    .build();
