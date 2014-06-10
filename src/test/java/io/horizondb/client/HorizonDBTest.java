@@ -757,6 +757,91 @@ public class HorizonDBTest {
     }
 
     @Test
+    public void testReadAcrossMultiplePartitionsWithNoTimestampRestriction() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+        long timestamp2 = TimeUtils.parseDateTime("2013-11-15 08:16:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE test;");
+                connection.execute("USE test;");
+                
+                Assert.assertEquals("test", connection.getDatabase());
+                
+                connection.execute("CREATE TIMESERIES DAX (" +
+                                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.000', 125E-1, 10);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.100', 12, 5);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.350', 11, 10);");
+
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-15 08:16:00.000', 13, 5);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-15 08:16:00.150', 129E-1, 5);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-15 08:16:00.350', 13, 10);");
+
+                try (RecordSet recordSet = connection.execute("SELECT * FROM DAX;")) {
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp, recordSet.getTimestampInMillis(0));
+                    assertEquals(125, recordSet.getDecimalMantissa(1));
+                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(10, recordSet.getLong(2));
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
+                    assertEquals(120, recordSet.getDecimalMantissa(1));
+                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(5, recordSet.getLong(2));
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
+                    assertEquals(110, recordSet.getDecimalMantissa(1));
+                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(10, recordSet.getLong(2));
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp2, recordSet.getTimestampInMillis(0));
+                    assertEquals(13, recordSet.getDecimalMantissa(1));
+                    assertEquals(0, recordSet.getDecimalExponent(1));
+                    assertEquals(5, recordSet.getLong(2));
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp2 + 150, recordSet.getTimestampInMillis(0));
+                    assertEquals(129, recordSet.getDecimalMantissa(1));
+                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(5, recordSet.getLong(2));
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp2 + 350, recordSet.getTimestampInMillis(0));
+                    assertEquals(130, recordSet.getDecimalMantissa(1));
+                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(10, recordSet.getLong(2));
+
+                    assertFalse(recordSet.next());
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }    
+    
+    @Test
     public void testReadWithNoData() throws Exception {
 
         Configuration configuration = Configuration.newBuilder()
