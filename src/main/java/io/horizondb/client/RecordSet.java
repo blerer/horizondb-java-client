@@ -184,6 +184,22 @@ public interface RecordSet extends AutoCloseable {
     byte getDecimalExponent(int index);
     
     /**
+     * Returns the value of the field as a double.
+     * 
+     * @param name the field name
+     * @return the value of the field as a double.
+     */
+    double getDouble(String name);
+    
+    /**
+     * Returns the value of the field as a double.
+     * 
+     * @param index the field index.
+     * @return the value of the field as a double.
+     */
+    double getDouble(int index);
+    
+    /**
      * Returns the value of the exponent of the specified decimal field.
      * 
      * @param name the field name.

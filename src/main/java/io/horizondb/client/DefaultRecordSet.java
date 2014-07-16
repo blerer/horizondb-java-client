@@ -247,6 +247,23 @@ class DefaultRecordSet implements RecordSet {
      * {@inheritDoc}
      */
     @Override
+    public double getDouble(String name) {
+        return getDouble(fieldIndex(name));
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getDouble(int index) {
+        checkState();
+        return this.current.getDouble(index);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public final byte getDecimalExponent(int index) {
         checkState();
         return this.current.getDecimalExponent(index);

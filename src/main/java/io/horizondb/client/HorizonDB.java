@@ -81,7 +81,8 @@ public final class HorizonDB implements Closeable {
      */
 	@Override
     public void close() {
-
+	    
+	    this.connectionManager.close();
     }
 		   
     /**
