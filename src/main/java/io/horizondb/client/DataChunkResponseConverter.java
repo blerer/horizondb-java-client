@@ -16,6 +16,7 @@ package io.horizondb.client;
 import io.horizondb.model.protocol.DataHeaderPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
+import io.horizondb.model.schema.RecordSetDefinition;
 import io.horizondb.model.schema.TimeSeriesDefinition;
 
 /**
@@ -31,7 +32,7 @@ public class DataChunkResponseConverter implements ResponseConverter {
     public RecordSet convert(Msg<?> response, MsgChannel channel) {
         
         DataHeaderPayload header = Msgs.getPayload(response);
-        TimeSeriesDefinition definition = header.getDefinition();
+        RecordSetDefinition definition = header.getDefinition();
         
         return new DefaultRecordSet(definition, new StreamedRecordIterator(definition, channel));
     }

@@ -20,7 +20,7 @@ import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
 import io.horizondb.model.protocol.Msg;
-import io.horizondb.model.schema.TimeSeriesDefinition;
+import io.horizondb.model.schema.RecordSetDefinition;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -73,7 +73,7 @@ final class StreamedRecordIterator implements RecordIterator {
 	 * @param connection the connection to the server
 	 * @param queries the queries to be send to the server
 	 */
-    public StreamedRecordIterator(TimeSeriesDefinition definition, MsgChannel channel) {
+    public StreamedRecordIterator(RecordSetDefinition definition, MsgChannel channel) {
     	
     	this.binaryRecords = definition.newBinaryRecords();
     	this.channel = channel;

@@ -15,6 +15,7 @@
  */
 package io.horizondb.client;
 
+import io.horizondb.model.schema.RecordSetDefinition;
 
 /**
  * Represents a set of records on which a user can iterate.

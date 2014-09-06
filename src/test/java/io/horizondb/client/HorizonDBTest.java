@@ -473,14 +473,12 @@ public class HorizonDBTest {
                     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 400, recordSet.getTimestampInMillis(0));
-                    assertEquals(125, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(0));
-                    assertEquals(120, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
                     
                     assertTrue(recordSet.next());
@@ -490,14 +488,12 @@ public class HorizonDBTest {
                     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 800, recordSet.getTimestampInMillis(0));
-                    assertEquals(125, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 850, recordSet.getTimestampInMillis(0));
-                    assertEquals(120, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
                     
                     assertTrue(recordSet.next());
@@ -576,14 +572,12 @@ public class HorizonDBTest {
                     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 800, recordSet.getTimestampInMillis(0));
-                    assertEquals(125, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
     
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 850, recordSet.getTimestampInMillis(0));
-                    assertEquals(120, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
                     
                     assertTrue(recordSet.next());
@@ -1070,6 +1064,47 @@ public class HorizonDBTest {
         }
     }
 
+    @Test
+    public void testReadWithProjection() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                createAndFillTimeSeries(connection);
+
+                try (RecordSet recordSet = connection.execute("SELECT Trade.* FROM DAX WHERE timestamp BETWEEN "
+                        + (timestamp + 200) + "ms AND " + (timestamp + 400) + "ms;")) {
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 360, recordSet.getTimestampInMillis(0));
+                    assertEquals(timestamp + 360, recordSet.getTimestampInMillis(1));
+                    assertEquals(12.5, recordSet.getDouble(2), 0.0);
+                    assertEquals(4, recordSet.getLong(3));
+
+                    assertFalse(recordSet.next());
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
     @Test
     public void testReadWithEqualsPredicate() throws Exception {
 

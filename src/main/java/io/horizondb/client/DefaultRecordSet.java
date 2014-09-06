@@ -18,7 +18,7 @@ package io.horizondb.client;
 import io.horizondb.model.core.Record;
 import io.horizondb.model.core.RecordIterator;
 import io.horizondb.model.core.records.TimeSeriesRecord;
-import io.horizondb.model.schema.TimeSeriesDefinition;
+import io.horizondb.model.schema.RecordSetDefinition;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,18 +53,6 @@ class DefaultRecordSet implements RecordSet {
 	 * The record iterator used by this <code>DefaultRecordSet</code>.
 	 */
 	private final RecordIterator iterator;
-
-	 /**
-     * Creates a new <code>DefaultRecordSet</code> for the specified time series that will iterate over the specified 
-     * records.
-     * 
-     * @param definition the time series definition
-     * @param iterator the record iterator
-     */
-    DefaultRecordSet(TimeSeriesDefinition definition, RecordIterator iterator) {
-
-        this(new TimeSeriesDefinitionAdapter(definition), iterator);
-    }
 	
 	/**
 	 * Creates a new <code>DefaultRecordSet</code> that will iterate over the specified 
