@@ -17,7 +17,6 @@ import io.horizondb.model.protocol.DataHeaderPayload;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.protocol.Msgs;
 import io.horizondb.model.schema.RecordSetDefinition;
-import io.horizondb.model.schema.TimeSeriesDefinition;
 
 /**
  * @author Benjamin

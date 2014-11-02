@@ -369,8 +369,9 @@ public class StreamedRecordSetTest {
 	 * Creates the request message.
 	 * 
 	 * @return the request message.
+	 * @throws IOException if an I/O problem occurs
 	 */
-    private static Msg<HqlQueryPayload> createRequest() {
+    private static Msg<HqlQueryPayload> createRequest() throws IOException {
 
         HqlQueryPayload queryPayload = new HqlQueryPayload("test", "SELECT * FROM test WHERE timestamp >= '2013-11-14 11:46:00' AND timestamp < '2013-11-14 11:46:20'");
 

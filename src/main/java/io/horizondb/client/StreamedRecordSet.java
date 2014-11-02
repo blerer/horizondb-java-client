@@ -25,7 +25,6 @@ import io.horizondb.model.schema.RecordSetDefinition;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
-import static io.horizondb.io.encoding.VarInts.readByte;
 import static io.horizondb.io.encoding.VarInts.readUnsignedInt;
 
 /**
@@ -126,7 +125,7 @@ final class StreamedRecordIterator implements RecordIterator {
 			this.buffer = msg.getPayload().getBuffer();
 		}
 
-		int type = readByte(this.buffer);
+		int type = this.buffer.readByte();
 
 		if (type == Msg.END_OF_STREAM_MARKER) {
 		    

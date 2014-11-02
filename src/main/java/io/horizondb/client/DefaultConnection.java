@@ -81,19 +81,26 @@ class DefaultConnection implements Connection {
     @Override
     public RecordSet execute(String query) {
 
-        Msg<HqlQueryPayload> request = Msgs.newHqlQueryMsg(getDatabase(), query);
-            
-        this.channel.sendRequest(request);
         
-        Msg<?> response = this.channel.awaitResponse(this.configuration.getQueryTimeoutInSeconds());
-        
-        if (response.getOpCode() == OpCode.SET_DATABASE) {
+        try {
+            Msg<HqlQueryPayload> request = Msgs.newHqlQueryMsg(getDatabase(), query);
+                
+            this.channel.sendRequest(request);
             
-            SetDatabasePayload payload = Msgs.getPayload(response);
-            this.databaseDefinition = payload.getDefinition();
+            Msg<?> response = this.channel.awaitResponse(this.configuration.getQueryTimeoutInSeconds());
+            
+            if (response.getOpCode() == OpCode.SET_DATABASE) {
+                
+                SetDatabasePayload payload = Msgs.getPayload(response);
+                this.databaseDefinition = payload.getDefinition();
+            }
+            
+            return this.converter.convert(response, this.channel);
+            
+        } catch (IOException e) {
+            throw new HorizonDBException("Could not send the query: '" +  query + "' due to the following exception", 
+                                         e);
         }
-        
-        return this.converter.convert(response, this.channel);
     }
 
     /**
