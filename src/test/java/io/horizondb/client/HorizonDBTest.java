@@ -20,6 +20,7 @@ import io.horizondb.db.HorizonServer;
 import io.horizondb.db.commitlog.CommitLog.SyncMode;
 import io.horizondb.io.files.FileUtils;
 import io.horizondb.model.core.util.TimeUtils;
+import io.horizondb.model.schema.RecordSetDefinition;
 import io.horizondb.test.AssertFiles;
 
 import java.io.IOException;
@@ -1089,11 +1090,53 @@ public class HorizonDBTest {
                 try (RecordSet recordSet = connection.execute("SELECT Trade.* FROM DAX WHERE timestamp BETWEEN "
                         + (timestamp + 200) + "ms AND " + (timestamp + 400) + "ms;")) {
 
+                    RecordSetDefinition definition = recordSet.getRecordSetDefinition();
+                    assertEquals(1, definition.getNumberOfRecordTypes());
+                    
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 360, recordSet.getTimestampInMillis(0));
                     assertEquals(timestamp + 360, recordSet.getTimestampInMillis(1));
                     assertEquals(12.5, recordSet.getDouble(2), 0.0);
                     assertEquals(4, recordSet.getLong(3));
+
+                    assertFalse(recordSet.next());
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
+    public void testReadWithFieldAndRecordFiltering() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                createAndFillTimeSeries(connection);
+
+                try (RecordSet recordSet = connection.execute("SELECT Trade.timestamp, Trade.price FROM DAX WHERE timestamp BETWEEN "
+                        + (timestamp + 200) + "ms AND " + (timestamp + 400) + "ms;")) {
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 360, recordSet.getTimestampInMillis(0));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
 
                     assertFalse(recordSet.next());
                 }
