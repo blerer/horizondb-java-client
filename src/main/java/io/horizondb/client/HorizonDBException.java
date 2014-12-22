@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,42 +13,62 @@
  */
 package io.horizondb.client;
 
+import io.horizondb.model.ErrorCodes;
 import io.horizondb.model.protocol.ErrorPayload;
 
 /**
- * @author Benjamin
- *
+ *  Base class for the Exception thrown by the java client.
  */
 public class HorizonDBException extends RuntimeException {
 
-	/**
+    /**
 	 * 
 	 */
     private static final long serialVersionUID = 3844334412343282479L;
 
-	/**
-	 * @param message
-	 */
-	public HorizonDBException(ErrorPayload errorPayload) {
-		super(new StringBuilder().append("[ERROR: ")
-		                         .append(errorPayload.getCode())
-		                         .append("] ")
-		                         .append(errorPayload.getMessage())
-		                         .toString());
-	}
-    
-	/**
-	 * @param message
-	 */
-	public HorizonDBException(String message) {
-		super(message);
-	}
+    /**
+     * The error code.
+     */
+    private final int code;
 
-	/**
-	 * @param message
-	 * @param cause
-	 */
-	public HorizonDBException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    /**
+     * Creates an <code>HorizonDBException</code> from the specified <code>ErrorPayload</code>.
+     * @param errorPayload the payload of the error message
+     */
+    public HorizonDBException(ErrorPayload errorPayload) {
+        super(new StringBuilder().append("[ERROR: ")
+                                 .append(errorPayload.getCode())
+                                 .append("] ")
+                                 .append(errorPayload.getMessage())
+                                 .toString());
+
+        this.code = errorPayload.getCode();
+    }
+
+    /**
+     * Creates an <code>HorizonDBException</code> with the specified message.
+     * @param message the error message
+     */
+    public HorizonDBException(String message) {
+        super(message);
+        this.code = ErrorCodes.INTERNAL_ERROR;
+    }
+
+    /**
+     * Creates an <code>HorizonDBException</code> with the specified message and root cause.
+     * @param message the error message
+     * @param cause the error root cause
+     */
+    public HorizonDBException(String message, Throwable cause) {
+        super(message, cause);
+        this.code = ErrorCodes.INTERNAL_ERROR;
+    }
+
+    /**
+     * Returns the error code.
+     * @return the error code
+     */
+    public int getCode() {
+        return this.code;
+    }
 }

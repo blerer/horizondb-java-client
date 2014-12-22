@@ -19,6 +19,7 @@ import io.horizondb.db.Configuration;
 import io.horizondb.db.HorizonServer;
 import io.horizondb.db.commitlog.CommitLog.SyncMode;
 import io.horizondb.io.files.FileUtils;
+import io.horizondb.model.ErrorCodes;
 import io.horizondb.model.core.util.TimeUtils;
 import io.horizondb.model.schema.RecordSetDefinition;
 import io.horizondb.test.AssertFiles;
@@ -145,6 +146,36 @@ public class HorizonDBTest {
         }
     }
 
+    @Test
+    public void testUseDatabaseWithNonExistingDatabase() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("USE Test;");
+            
+            } catch(HorizonDBException e) { 
+                assertEquals(ErrorCodes.UNKNOWN_DATABASE, e.getCode());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
     @Test
     public void testCreateTimeSeries() throws Exception {
 
@@ -1057,6 +1088,9 @@ public class HorizonDBTest {
 
                     assertFalse(recordSet.next());
                 }
+
+                // Test invalid filtering
+                connection.execute("SELECT * FROM DAX WHERE timestamp2 BETWEEN " + (timestamp + 200) + "ms AND " + (timestamp + 400) + "ms;");
             }
 
         } finally {
