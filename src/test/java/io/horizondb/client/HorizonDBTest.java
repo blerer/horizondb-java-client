@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,13 +31,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * @author Benjamin
- * 
  */
 public class HorizonDBTest {
 
@@ -168,6 +166,7 @@ public class HorizonDBTest {
             
             } catch(HorizonDBException e) { 
                 assertEquals(ErrorCodes.UNKNOWN_DATABASE, e.getCode());
+                assertTrue(e.getMessage().contains("The database 'test' does not exists."));
             }
 
         } finally {
@@ -220,7 +219,78 @@ public class HorizonDBTest {
     }
 
     @Test
-    public void testGetTimeSeriesWithNotExistingSeries() throws Exception {
+    public void testCreateTimeSeriesWithNoDatabaseSpecified() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).build()) {
+
+                Connection connection = client.newConnection();
+
+                connection.execute("CREATE TIMESERIES DAX (" +
+                                        "Quote(received NANOSECONDS_TIMESTAMP, bidPrice DECIMAL, askPrice DECIMAL, bidVolume INTEGER, askVolume INTEGER), " +
+                                        "Trade(received NANOSECONDS_TIMESTAMP, price DECIMAL, volume INTEGER))TIME_UNIT = NANOSECONDS TIMEZONE = 'Europe/Berlin';");
+            
+            } catch(HorizonDBException e) { 
+                assertError(ErrorCodes.UNKNOWN_DATABASE, "No database has been specified.", e);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }    
+    
+    @Test
+    public void testCreateTimeSeriesWithInvalidTypeName() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).build()) {
+
+                Connection connection = client.newConnection();
+
+                connection.execute("CREATE DATABASE Test;");
+                connection.execute("USE Test;");
+
+                Assert.assertEquals("Test", connection.getDatabase());
+
+                connection.execute("CREATE TIMESERIES DAX ("
+                        + "Quote(received NANOSECONDS_TIMESTAMP, bidPrice DCIMAL, askPrice DECIMAL, bidVolume INTEGER, askVolume INTEGER), "
+                        + "Trade(received NANOSECONDS_TIMESTAMP, price DECIMAL, volume INTEGER))TIME_UNIT = NANOSECONDS TIMEZONE = 'Europe/Berlin';");
+
+                fail();
+
+            } catch (HorizonDBException e) {
+                assertError(ErrorCodes.INVALID_QUERY, "mismatched input 'DCIMAL'", e);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testSelectWithNotExistingSeries() throws Exception {
 
         Configuration configuration = Configuration.newBuilder()
                                                    .commitLogDirectory(this.testDirectory.resolve("commitLog"))
@@ -244,11 +314,11 @@ public class HorizonDBTest {
                 Connection connection = client.newConnection("Test");
                 connection.execute("SELECT * FROM DAX30 WHERE timestamp BETWEEN '26-05-2014' AND '27-05-2014';");
 
-                Assert.fail();
+                fail();
 
             } catch (HorizonDBException e) {
 
-                Assert.assertTrue(true);
+                assertError(ErrorCodes.UNKNOWN_TIMESERIES, "The time series dax30 does not exists within the database test.", e);
             }
 
         } finally {
@@ -1626,4 +1696,9 @@ public class HorizonDBTest {
         connection.execute("INSERT INTO DAX.ExchangeState VALUES ('2013-11-14 11:46:00.450', '2013-11-14 11:46:00.450', 6);");
         connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.500', '2013-11-14 11:46:00.500', 13, 9);");
     }
+
+    private static void assertError(int errorCode, String msgFragment, HorizonDBException e) {
+        assertEquals(errorCode, e.getCode());
+        assertTrue(e.getMessage().contains(msgFragment));
+    }    
 }
