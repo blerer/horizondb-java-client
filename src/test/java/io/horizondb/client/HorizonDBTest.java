@@ -207,7 +207,7 @@ public class HorizonDBTest {
 
                 Connection connection = client.newConnection("Test");
                 
-                RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '26-05-2014' AND '27-05-2014';");
+                RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '2014-05-26' AND '2014-05-26';");
             
                 assertFalse(recordSet.next());
             }
@@ -373,6 +373,46 @@ public class HorizonDBTest {
                     assertEquals(-1, recordSet.getDecimalExponent(1));
                     assertEquals(5, recordSet.getLong(2));
                 }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
+    @Test
+    public void testInsertIntoTimeSeriesWithInvalidValues() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE test;");
+                connection.execute("USE test;");
+                
+                Assert.assertEquals("test", connection.getDatabase());
+                
+                connection.execute("CREATE TIMESERIES DAX (" +
+                                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO DAX.Trade VALUES ('test', 125E-1, 10);");
+                fail();
+
+            } catch (HorizonDBException e) {
+
+                assertError(ErrorCodes.INVALID_QUERY, "The format of the date/time: test does not match the expected one: yyyy-MM-dd HH:mm:ss.SSS", e);
             }
 
         } finally {
@@ -1158,11 +1198,7 @@ public class HorizonDBTest {
 
                     assertFalse(recordSet.next());
                 }
-
-                // Test invalid filtering
-                connection.execute("SELECT * FROM DAX WHERE timestamp2 BETWEEN " + (timestamp + 200) + "ms AND " + (timestamp + 400) + "ms;");
             }
-
         } finally {
 
             server.shutdown();
