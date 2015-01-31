@@ -217,6 +217,46 @@ public class HorizonDBTest {
             server.shutdown();
         }
     }
+    
+    @Test
+    public void testCreateTimeSeriesWithDatabaseNameSpecifiedInTheQuery() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE Test;");
+                
+                connection.execute("CREATE TIMESERIES Test.DAX (" +
+                                        "Quote(received NANOSECONDS_TIMESTAMP, bidPrice DECIMAL, askPrice DECIMAL, bidVolume INTEGER, askVolume INTEGER), " +
+                                        "Trade(received NANOSECONDS_TIMESTAMP, price DECIMAL, volume INTEGER))TIME_UNIT = NANOSECONDS TIMEZONE = 'Europe/Berlin';");
+              }
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).build()) {
+
+                Connection connection = client.newConnection("Test");
+                
+                RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '2014-05-26' AND '2014-05-26';");
+            
+                assertFalse(recordSet.next());
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
 
     @Test
     public void testCreateTimeSeriesWithNoDatabaseSpecified() throws Exception {
