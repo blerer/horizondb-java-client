@@ -1703,6 +1703,38 @@ public class HorizonDBTest {
     }
     
     @Test
+    public void testReadWithEmptyInPredicate() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                createAndFillTimeSeries(connection);
+
+                try (RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE volume IN ();")) {
+
+                    assertFalse(recordSet.next());
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
     public void testReadWithNotEqualsPredicate() throws Exception {
 
         long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
