@@ -22,20 +22,24 @@ import io.horizondb.model.core.util.TimeUtils;
 import io.horizondb.model.schema.RecordSetDefinition;
 import io.horizondb.test.AssertFiles;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.fail;
-
+import static org.apache.commons.lang.Validate.notEmpty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  */
@@ -422,6 +426,60 @@ public class HorizonDBTest {
     }
 
     @Test
+    public void testDropTimeSeries() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE test;");
+                connection.execute("USE test;");
+                
+                Assert.assertEquals("test", connection.getDatabase());
+                
+                connection.execute("CREATE TIMESERIES DAX (" +
+                                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.000', 125E-1, 10);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.100', 12, 5);");
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.350', 11, 10);");
+                
+                connection.execute("DROP TIMESERIES DAX;");
+                
+                connection.execute("CREATE TIMESERIES DAX (" +
+                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.100', 13, 6);");
+
+                try (RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '2013-11-14 11:46:00' AND '2013-11-14 11:46:02';")) {
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
+                    assertEquals(13.0, recordSet.getDouble(1), 0);
+                    assertEquals(6, recordSet.getLong(2));
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
     public void testInsertIntoTimeSeriesWithInvalidValues() throws Exception {
 
         Configuration configuration = Configuration.newBuilder()
@@ -522,7 +580,7 @@ public class HorizonDBTest {
             server.shutdown();
         }
 
-        AssertFiles.assertFileExists(this.testDirectory.resolve("data").resolve("test").resolve("DAX-1384383600000.ts"));
+        assertTimeSeriesFileExist("test", "DAX", 1384383600000L);
 
         server = new HorizonServer(configuration);
 
@@ -836,9 +894,7 @@ public class HorizonDBTest {
                 connection.execute("INSERT INTO CAC40.ExchangeState VALUES ('2013-11-14 11:46:00.350', '2013-11-14 11:46:00.350', 10);");
                 connection.execute("INSERT INTO CAC40.ExchangeState VALUES ('2013-11-14 11:46:00.450', '2013-11-14 11:46:00.450', 6);");
 
-                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-                                                               .resolve("test")
-                                                               .resolve("DAX-1384383600000.ts"));
+                assertTimeSeriesFileExist("test", "DAX", 1384383600000L);
 
                 AssertFiles.assertFileDoesNotExists(this.testDirectory.resolve("data")
                                                                       .resolve("test")
@@ -948,10 +1004,8 @@ public class HorizonDBTest {
                 connection.execute("INSERT INTO DAX.ExchangeState VALUES ('2013-11-14 11:46:00.450', '2013-11-14 11:46:00.450', 6);");
 
                 Thread.sleep(100);
-                
-                AssertFiles.assertFileExists(this.testDirectory.resolve("data")
-                                                               .resolve("test")
-                                                               .resolve("DAX-1384383600000.ts"));
+
+                assertTimeSeriesFileExist("test", "DAX", 1384383600000L);
 
                 try (RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '2013-11-14' AND '2013-11-15';")) {
 
@@ -1809,4 +1863,70 @@ public class HorizonDBTest {
         assertEquals(errorCode, e.getCode());
         assertTrue(e.getMessage().contains(msgFragment));
     }    
+    
+    private void assertTimeSeriesFileExist(String databaseName,
+                                           String timeSeriesName,
+                                           long timeSeriesStart) {
+        
+        List<File> databasesDirectories = listFiles(databaseName, this.testDirectory.resolve("data").toFile());
+        assertFalse("No database directory exists for the database: " + databaseName, databasesDirectories.isEmpty());
+
+        List<File> timeSeriesDirectories = listFiles(timeSeriesName, databasesDirectories.toArray(new File[0]));
+        assertFalse("No time series directory exists for the time series: " + timeSeriesName, 
+                    timeSeriesDirectories.isEmpty());
+        
+        String partitionName = timeSeriesName + '-' + timeSeriesStart;
+        List<File> timeSeriesFiles = listFiles(partitionName, 
+                                               timeSeriesDirectories.toArray(new File[0]));
+        
+        assertFalse("No time series partition file exists for the partition: " + partitionName, 
+                    timeSeriesFiles.isEmpty());
+    }
+
+    private static List<File> listFiles(String prefix, File... directories) {
+        
+        List<File> fileList = new ArrayList<>();
+        
+        for (File directory : directories) {
+            
+            File[] files = directory.listFiles(new FilenamePrefixFilter(prefix));
+            
+            for (File file : files) {
+                fileList.add(file);
+            }
+        }
+        
+        return fileList;
+    }
+    
+    /**
+     * A <code>FilenameFilter</code> that filter files based on the start of their name.
+     *
+     */
+    private static class FilenamePrefixFilter implements FilenameFilter {
+
+        /**
+         * The file name prefix to use when filtering.
+         */
+        private final String prefix;
+
+        /**
+         * Creates a new <code>FilenamePrefixFilter</code> that filter out files that do not
+         * have a name starting with the specified prefix.
+         * @param prefix the filename prefix
+         */
+        public FilenamePrefixFilter(String prefix) {
+            notEmpty(prefix, "the prefix parameter must not be empty.");
+            this.prefix = prefix;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.startsWith(this.prefix);
+        }
+        
+    }
 }
