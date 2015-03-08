@@ -426,6 +426,92 @@ public class HorizonDBTest {
     }
 
     @Test
+    public void testDropDatabase() throws Exception {
+
+        long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE test;");
+
+                connection.execute("CREATE TIMESERIES test.DAX (" +
+                                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO test.DAX.Trade VALUES ('2013-11-14 11:46:00.000', 125E-1, 10);");
+                connection.execute("INSERT INTO test.DAX.Trade VALUES ('2013-11-14 11:46:00.100', 12, 5);");
+                connection.execute("INSERT INTO test.DAX.Trade VALUES ('2013-11-14 11:46:00.350', 11, 10);");
+                
+                connection.execute("DROP DATABASE test;");
+                
+                connection.execute("CREATE DATABASE test;");
+                connection.execute("USE test;");
+                
+                connection.execute("CREATE TIMESERIES DAX (" +
+                        "Trade(price DECIMAL, volume INTEGER))TIME_UNIT = MILLISECONDS TIMEZONE = 'Europe/Berlin';");
+                
+                connection.execute("INSERT INTO DAX.Trade VALUES ('2013-11-14 11:46:00.100', 13, 6);");
+
+                try (RecordSet recordSet = connection.execute("SELECT * FROM DAX WHERE timestamp BETWEEN '2013-11-14 11:46:00' AND '2013-11-14 11:46:02';")) {
+
+                    assertTrue(recordSet.next());
+                    assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
+                    assertEquals(13.0, recordSet.getDouble(1), 0);
+                    assertEquals(6, recordSet.getLong(2));
+                }
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
+    public void testDropDatabaseWithNonExistingDatabase() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("DROP DATABASE test;");
+                
+                fail();
+            } catch(HorizonDBException e) { 
+                assertEquals(ErrorCodes.UNKNOWN_DATABASE, e.getCode());
+                assertTrue(e.getMessage().contains("The database 'test' does not exists."));
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+    
+    @Test
     public void testDropTimeSeries() throws Exception {
 
         long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
@@ -479,6 +565,43 @@ public class HorizonDBTest {
         }
     }
     
+    @Test
+    public void testDropTimeSeriesWithNonExistintimeSeries() throws Exception {
+
+        Configuration configuration = Configuration.newBuilder()
+                                                   .commitLogDirectory(this.testDirectory.resolve("commitLog"))
+                                                   .dataDirectory(this.testDirectory.resolve("data"))
+                                                   .build();
+
+        HorizonServer server = new HorizonServer(configuration);
+
+        try {
+
+            server.start();
+
+            try (HorizonDB client = HorizonDB.newBuilder(configuration.getPort()).setQueryTimeoutInSeconds(120).build()) {
+
+                Connection connection = client.newConnection();
+                
+                connection.execute("CREATE DATABASE test;");
+                connection.execute("USE test;");
+                
+                Assert.assertEquals("test", connection.getDatabase());
+
+                connection.execute("DROP TIMESERIES DAX;");
+                fail();
+
+            } catch (HorizonDBException e) {
+
+                assertError(ErrorCodes.UNKNOWN_TIMESERIES, "The time series dax30 does not exists within the database test.", e);
+            }
+
+        } finally {
+
+            server.shutdown();
+        }
+    }
+
     @Test
     public void testInsertIntoTimeSeriesWithInvalidValues() throws Exception {
 
