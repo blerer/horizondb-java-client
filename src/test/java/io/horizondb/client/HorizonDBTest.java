@@ -592,8 +592,7 @@ public class HorizonDBTest {
                 fail();
 
             } catch (HorizonDBException e) {
-
-                assertError(ErrorCodes.UNKNOWN_TIMESERIES, "The time series dax30 does not exists within the database test.", e);
+                assertError(ErrorCodes.UNKNOWN_TIMESERIES, "Unknown time series DAX in database test", e);
             }
 
         } finally {
