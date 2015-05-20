@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +14,7 @@
 package io.horizondb.client;
 
 import io.horizondb.model.core.Record;
-import io.horizondb.model.core.RecordIterator;
+import io.horizondb.model.core.ResourceIterator;
 import io.horizondb.model.core.records.TimeSeriesRecord;
 import io.horizondb.model.schema.RecordSetDefinition;
 
@@ -28,8 +26,6 @@ import static org.apache.commons.lang.Validate.isTrue;
 
 /**
  * default implementation of <code>RecordSet</code>.
- * 
- * @author Benjamin
  * 
  */
 class DefaultRecordSet implements RecordSet {
@@ -52,7 +48,7 @@ class DefaultRecordSet implements RecordSet {
 	/**
 	 * The record iterator used by this <code>DefaultRecordSet</code>.
 	 */
-	private final RecordIterator iterator;
+	private final ResourceIterator<? extends Record> iterator;
 	
 	/**
 	 * Creates a new <code>DefaultRecordSet</code> that will iterate over the specified 
@@ -61,7 +57,7 @@ class DefaultRecordSet implements RecordSet {
 	 * @param definition the records definition
 	 * @param iterator the record iterator
 	 */
-	DefaultRecordSet(RecordSetDefinition definition, RecordIterator iterator) {
+	DefaultRecordSet(RecordSetDefinition definition, ResourceIterator<? extends Record> iterator) {
 
 		this.definition = definition;
 		this.records = definition.newRecords();

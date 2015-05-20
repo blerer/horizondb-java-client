@@ -13,15 +13,13 @@
  */
 package io.horizondb.client;
 
-import io.horizondb.model.core.RecordIterator;
+import io.horizondb.model.core.Record;
+import io.horizondb.model.core.ResourceIteratorUtils;
 import io.horizondb.model.protocol.Msg;
 import io.horizondb.model.schema.DefaultRecordSetDefinition;
 
 /**
  * The default response converter.
- * 
- * @author Benjamin
- *
  */
 public class DefaultResponseConverter implements ResponseConverter {
 
@@ -29,7 +27,7 @@ public class DefaultResponseConverter implements ResponseConverter {
      * An empty record set.
      */
     private static final RecordSet EMPTY_RECORD_SET = new DefaultRecordSet(DefaultRecordSetDefinition.EMPTY_DEFINITION, 
-                                                                           RecordIterator.EMPTY_ITERATOR);
+                                                                           ResourceIteratorUtils.<Record>emptyIterator());
     
     /**
      * {@inheritDoc}

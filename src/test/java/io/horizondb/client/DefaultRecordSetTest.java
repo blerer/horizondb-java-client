@@ -16,7 +16,7 @@
 package io.horizondb.client;
 
 import io.horizondb.model.core.Record;
-import io.horizondb.model.core.RecordIterator;
+import io.horizondb.model.core.ResourceIterator;
 import io.horizondb.model.core.records.TimeSeriesRecord;
 import io.horizondb.model.schema.DatabaseDefinition;
 import io.horizondb.model.schema.FieldType;
@@ -37,225 +37,224 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * @author Benjamin
- *
+ * 
  */
 public class DefaultRecordSetTest {
 
-	private TimeSeriesDefinition definition;
-	
-	@Before
-	public void setUp() {
-		
-		RecordTypeDefinition recordType = RecordTypeDefinition.newBuilder("ExchangeState")
-		                                                      .addMillisecondTimestampField("exchangeTimestamp")
-		                                                      .addByteField("status")
-		                                                      .build();
-		
-		DatabaseDefinition databaseDefinition = new DatabaseDefinition("test");
-		
-		this.definition = databaseDefinition.newTimeSeriesDefinitionBuilder("test")
-		                                    .timeUnit(TimeUnit.NANOSECONDS)
-		                                    .addRecordType(recordType)
-		                                    .build();
-	}
-	
-	@After
-	public void tearDown() {
-		
-		this.definition = null;
-	}
-	
-	@Test
-	public void testWithFullRecords() {
-		
-		TimeSeriesRecord first = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		first.setTimestampInNanos(0, 12000700);
-		first.setTimestampInMillis(1, 12);
-		first.setByte(2, 3);
+    private TimeSeriesDefinition definition;
 
-		TimeSeriesRecord second = new TimeSeriesRecord(0,
-		                                               TimeUnit.NANOSECONDS,
-		                                               FieldType.MILLISECONDS_TIMESTAMP,
-		                                               FieldType.BYTE);
-		second.setTimestampInNanos(0, 13000900);
-		second.setTimestampInMillis(1, 13);
-		second.setByte(2, 3);
+    @Before
+    public void setUp() {
 
-		TimeSeriesRecord third = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		third.setTimestampInNanos(0, 13004400);
-		third.setTimestampInMillis(1, 13);
-		third.setByte(2, 1);
+        RecordTypeDefinition recordType = RecordTypeDefinition.newBuilder("ExchangeState")
+                                                              .addMillisecondTimestampField("exchangeTimestamp")
+                                                              .addByteField("status")
+                                                              .build();
 
-		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
-		
-		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
+        DatabaseDefinition databaseDefinition = new DatabaseDefinition("test");
 
-			assertTrue(defaultRecordSet.next());
+        this.definition = databaseDefinition.newTimeSeriesDefinitionBuilder("test")
+                                            .timeUnit(TimeUnit.NANOSECONDS)
+                                            .addRecordType(recordType)
+                                            .build();
+    }
 
-			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
+    @After
+    public void tearDown() {
 
-			assertTrue(defaultRecordSet.next());
+        this.definition = null;
+    }
 
-			assertEquals(second.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(second.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(second.getByte(2), defaultRecordSet.getByte(2));
+    @Test
+    public void testWithFullRecords() {
 
-			assertTrue(defaultRecordSet.next());
+        TimeSeriesRecord first = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        first.setTimestampInNanos(0, 12000700);
+        first.setTimestampInMillis(1, 12);
+        first.setByte(2, 3);
 
-			assertEquals(third.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(third.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(third.getByte(2), defaultRecordSet.getByte(2));
+        TimeSeriesRecord second = new TimeSeriesRecord(0,
+                                                       TimeUnit.NANOSECONDS,
+                                                       FieldType.MILLISECONDS_TIMESTAMP,
+                                                       FieldType.BYTE);
+        second.setTimestampInNanos(0, 13000900);
+        second.setTimestampInMillis(1, 13);
+        second.setByte(2, 3);
 
-			assertFalse(defaultRecordSet.next());
-		}
-	}
+        TimeSeriesRecord third = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        third.setTimestampInNanos(0, 13004400);
+        third.setTimestampInMillis(1, 13);
+        third.setByte(2, 1);
 
-	@Test
-	public void testWithDeltas() {
-		
-		TimeSeriesRecord first = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		first.setTimestampInNanos(0, 12000700);
-		first.setTimestampInMillis(1, 12);
-		first.setByte(2, 3);
+        ResourceIterator<Record> iterator = new RecordIteratorStub(asList(first, second, third));
 
-		TimeSeriesRecord second = new TimeSeriesRecord(0,
-		                                               TimeUnit.NANOSECONDS,
-		                                               FieldType.MILLISECONDS_TIMESTAMP,
-		                                               FieldType.BYTE);
-		second.setDelta(true);
-		second.setTimestampInNanos(0, 1000200);
-		second.setTimestampInMillis(1, 1);
+        try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
 
-		TimeSeriesRecord third = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		third.setDelta(true);
-		third.setTimestampInNanos(0, 3500);
-		third.setByte(2, -2);
+            assertTrue(defaultRecordSet.next());
 
-		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
-		
-		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
+            assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(defaultRecordSet.next());
+            assertTrue(defaultRecordSet.next());
 
-			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
+            assertEquals(second.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(second.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(second.getByte(2), defaultRecordSet.getByte(2));
 
-			assertTrue(defaultRecordSet.next());
-			
-			assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(3, defaultRecordSet.getByte(2));
+            assertTrue(defaultRecordSet.next());
 
-			assertTrue(defaultRecordSet.next());
-			
-			assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(1, defaultRecordSet.getByte(2));
+            assertEquals(third.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(third.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(third.getByte(2), defaultRecordSet.getByte(2));
 
-			assertFalse(defaultRecordSet.next());
-		}
-	}
-	
-	@Test
-	public void testWithDeltasAndFullState() {
-		
-		TimeSeriesRecord first = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		first.setTimestampInNanos(0, 12000700);
-		first.setTimestampInMillis(1, 12);
-		first.setByte(2, 3);
+            assertFalse(defaultRecordSet.next());
+        }
+    }
 
-		TimeSeriesRecord second = new TimeSeriesRecord(0,
-		                                               TimeUnit.NANOSECONDS,
-		                                               FieldType.MILLISECONDS_TIMESTAMP,
-		                                               FieldType.BYTE);
-		second.setDelta(true);
-		second.setTimestampInNanos(0, 1000200);
-		second.setTimestampInMillis(1, 1);
+    @Test
+    public void testWithDeltas() {
 
-		TimeSeriesRecord third = new TimeSeriesRecord(0,
-		                                              TimeUnit.NANOSECONDS,
-		                                              FieldType.MILLISECONDS_TIMESTAMP,
-		                                              FieldType.BYTE);
-		third.setTimestampInNanos(0, 13004400);
-		third.setTimestampInMillis(1, 13);
-		third.setByte(2, 1);
+        TimeSeriesRecord first = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        first.setTimestampInNanos(0, 12000700);
+        first.setTimestampInMillis(1, 12);
+        first.setByte(2, 3);
 
-		RecordIterator iterator = new RecordIteratorStub(asList(first, second, third));
-		
-		try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
+        TimeSeriesRecord second = new TimeSeriesRecord(0,
+                                                       TimeUnit.NANOSECONDS,
+                                                       FieldType.MILLISECONDS_TIMESTAMP,
+                                                       FieldType.BYTE);
+        second.setDelta(true);
+        second.setTimestampInNanos(0, 1000200);
+        second.setTimestampInMillis(1, 1);
 
-			assertTrue(defaultRecordSet.next());
+        TimeSeriesRecord third = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        third.setDelta(true);
+        third.setTimestampInNanos(0, 3500);
+        third.setByte(2, -2);
 
-			assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
+        ResourceIterator<Record> iterator = new RecordIteratorStub(asList(first, second, third));
 
-			assertTrue(defaultRecordSet.next());
-			
-			assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(3, defaultRecordSet.getByte(2));
+        try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
 
-			assertTrue(defaultRecordSet.next());
-			
-			assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
-			assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
-			assertEquals(1, defaultRecordSet.getByte(2));
+            assertTrue(defaultRecordSet.next());
 
-			assertFalse(defaultRecordSet.next());
-		}
-	}
-	
-	private static class RecordIteratorStub implements RecordIterator {
+            assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
 
-		private final Iterator<? extends Record> iterator;
-		
-		public RecordIteratorStub(Iterable<? extends Record> iterable) {
-			this.iterator = iterable.iterator();
-		}
-		
-		/**
-		 * {@inheritDoc}
-		 */
+            assertTrue(defaultRecordSet.next());
+
+            assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(3, defaultRecordSet.getByte(2));
+
+            assertTrue(defaultRecordSet.next());
+
+            assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(1, defaultRecordSet.getByte(2));
+
+            assertFalse(defaultRecordSet.next());
+        }
+    }
+
+    @Test
+    public void testWithDeltasAndFullState() {
+
+        TimeSeriesRecord first = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        first.setTimestampInNanos(0, 12000700);
+        first.setTimestampInMillis(1, 12);
+        first.setByte(2, 3);
+
+        TimeSeriesRecord second = new TimeSeriesRecord(0,
+                                                       TimeUnit.NANOSECONDS,
+                                                       FieldType.MILLISECONDS_TIMESTAMP,
+                                                       FieldType.BYTE);
+        second.setDelta(true);
+        second.setTimestampInNanos(0, 1000200);
+        second.setTimestampInMillis(1, 1);
+
+        TimeSeriesRecord third = new TimeSeriesRecord(0,
+                                                      TimeUnit.NANOSECONDS,
+                                                      FieldType.MILLISECONDS_TIMESTAMP,
+                                                      FieldType.BYTE);
+        third.setTimestampInNanos(0, 13004400);
+        third.setTimestampInMillis(1, 13);
+        third.setByte(2, 1);
+
+        ResourceIterator<Record> iterator = new RecordIteratorStub(asList(first, second, third));
+
+        try (RecordSet defaultRecordSet = new DefaultRecordSet(this.definition, iterator)) {
+
+            assertTrue(defaultRecordSet.next());
+
+            assertEquals(first.getTimestampInNanos(0), defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(first.getTimestampInMillis(1), defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(first.getByte(2), defaultRecordSet.getByte(2));
+
+            assertTrue(defaultRecordSet.next());
+
+            assertEquals(13000900, defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(3, defaultRecordSet.getByte(2));
+
+            assertTrue(defaultRecordSet.next());
+
+            assertEquals(13004400, defaultRecordSet.getTimestampInNanos(0));
+            assertEquals(13, defaultRecordSet.getTimestampInMillis(1));
+            assertEquals(1, defaultRecordSet.getByte(2));
+
+            assertFalse(defaultRecordSet.next());
+        }
+    }
+
+    private static class RecordIteratorStub implements ResourceIterator<Record> {
+
+        private final Iterator<? extends Record> iterator;
+
+        public RecordIteratorStub(Iterable<? extends Record> iterable) {
+            this.iterator = iterable.iterator();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void close() throws IOException {
 
         }
 
-		/**
-		 * {@inheritDoc}
-		 */
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public boolean hasNext() throws IOException {
-	        return this.iterator.hasNext();
+            return this.iterator.hasNext();
         }
 
-		/**
-		 * {@inheritDoc}
-		 */
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Record next() throws IOException {
-        	return this.iterator.next();
+            return this.iterator.next();
         }
-		
-	}
+
+    }
 }

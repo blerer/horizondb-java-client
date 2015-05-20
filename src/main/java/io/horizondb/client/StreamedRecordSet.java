@@ -1,6 +1,4 @@
 /**
- * Copyright 2013 Benjamin Lerer
- * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +14,7 @@
 package io.horizondb.client;
 
 import io.horizondb.io.ReadableBuffer;
-import io.horizondb.model.core.RecordIterator;
+import io.horizondb.model.core.ResourceIterator;
 import io.horizondb.model.core.records.BinaryTimeSeriesRecord;
 import io.horizondb.model.protocol.DataChunkPayload;
 import io.horizondb.model.protocol.Msg;
@@ -33,7 +31,7 @@ import static io.horizondb.io.encoding.VarInts.readUnsignedInt;
  * @author Benjamin
  *
  */
-final class StreamedRecordIterator implements RecordIterator {
+final class StreamedRecordIterator implements ResourceIterator<BinaryTimeSeriesRecord> {
 
 	/**
 	 * The connection to the server.
