@@ -757,11 +757,11 @@ public class HorizonDBTest {
                                                    .maximumNumberOfCommitLogSegments(3)
                                                    .build();
         
-        testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush(configuration); 
+        testInsertIntoTimeSeriesWithCommitLogSegmentSwitchAndForceFlush(configuration); 
     }
 
     @Test
-    public void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlushInPeriodicMode() 
+    public void testInsertIntoTimeSeriesWithCommitLogSegmentSwitchAndForceFlushInPeriodicMode() 
             throws Exception {
         
 
@@ -774,10 +774,10 @@ public class HorizonDBTest {
                                                    .commitLogFlushPeriodInMillis(50)
                                                    .build();
         
-        testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush(configuration); 
+        testInsertIntoTimeSeriesWithCommitLogSegmentSwitchAndForceFlush(configuration); 
     }
     
-    private static void testInsertIntoTimeSeriesWithWithCommitLogSegmentSwitchAndForceFlush(Configuration configuration) 
+    private static void testInsertIntoTimeSeriesWithCommitLogSegmentSwitchAndForceFlush(Configuration configuration) 
             throws Exception {
 
         long timestamp = TimeUtils.parseDateTime("2013-11-14 11:46:00.000");
@@ -965,7 +965,6 @@ public class HorizonDBTest {
                     assertFalse(recordSet.next());
                 }
             }
-
         } finally {
 
             server.shutdown();
@@ -1206,38 +1205,32 @@ public class HorizonDBTest {
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-                    assertEquals(125, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
-                    assertEquals(120, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-                    assertEquals(110, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(11.0, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2, recordSet.getTimestampInMillis(0));
-                    assertEquals(13, recordSet.getDecimalMantissa(1));
-                    assertEquals(0, recordSet.getDecimalExponent(1));
+                    assertEquals(13.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2 + 150, recordSet.getTimestampInMillis(0));
-                    assertEquals(129, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.9, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2 + 350, recordSet.getTimestampInMillis(0));
-                    assertEquals(130, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(13.0, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertFalse(recordSet.next());
@@ -1291,38 +1284,32 @@ public class HorizonDBTest {
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp, recordSet.getTimestampInMillis(0));
-                    assertEquals(125, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.5, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 100, recordSet.getTimestampInMillis(0));
-                    assertEquals(120, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp + 350, recordSet.getTimestampInMillis(0));
-                    assertEquals(110, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(11.0, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2, recordSet.getTimestampInMillis(0));
-                    assertEquals(13, recordSet.getDecimalMantissa(1));
-                    assertEquals(0, recordSet.getDecimalExponent(1));
+                    assertEquals(13.0, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2 + 150, recordSet.getTimestampInMillis(0));
-                    assertEquals(129, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(12.9, recordSet.getDouble(1), 0.0);
                     assertEquals(5, recordSet.getLong(2));
 
                     assertTrue(recordSet.next());
                     assertEquals(timestamp2 + 350, recordSet.getTimestampInMillis(0));
-                    assertEquals(130, recordSet.getDecimalMantissa(1));
-                    assertEquals(-1, recordSet.getDecimalExponent(1));
+                    assertEquals(13.0, recordSet.getDouble(1), 0.0);
                     assertEquals(10, recordSet.getLong(2));
 
                     assertFalse(recordSet.next());
@@ -1622,10 +1609,9 @@ public class HorizonDBTest {
                     assertEquals(1, recordSet.getType());
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(0));
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(1));
-                    assertEquals(130, recordSet.getDecimalMantissa(2));
-                    assertEquals(-1, recordSet.getDecimalExponent(2));
+                    assertEquals(13.0, recordSet.getDouble(2), 0.0);
                     assertEquals(9, recordSet.getLong(3));
-                    
+
                     assertFalse(recordSet.next());
                 }
             }
@@ -1814,8 +1800,7 @@ public class HorizonDBTest {
                     assertEquals(1, recordSet.getType());
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(0));
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(1));
-                    assertEquals(130, recordSet.getDecimalMantissa(2));
-                    assertEquals(-1, recordSet.getDecimalExponent(2));
+                    assertEquals(13.0, recordSet.getDouble(2), 0.0);
                     assertEquals(9, recordSet.getLong(3));
                     
                     assertFalse(recordSet.next());
@@ -1864,8 +1849,7 @@ public class HorizonDBTest {
                     assertEquals(1, recordSet.getType());
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(0));
                     assertEquals(timestamp + 500, recordSet.getTimestampInMillis(1));
-                    assertEquals(130, recordSet.getDecimalMantissa(2));
-                    assertEquals(-1, recordSet.getDecimalExponent(2));
+                    assertEquals(13.0, recordSet.getDouble(2), 0.0);
                     assertEquals(9, recordSet.getLong(3));
                     
                     assertFalse(recordSet.next());
